@@ -116,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setProfile(data)
     } catch (error) {
       console.error('Error fetching profile:', error)
-      if (error.message === 'Profile fetch timeout') {
+      if (error instanceof Error && error.message === 'Profile fetch timeout') {
         console.error('Profile fetch timed out - possible RLS or connection issue')
       }
     }
