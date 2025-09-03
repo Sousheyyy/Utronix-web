@@ -125,6 +125,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
     })
 
+    // If there's an error about email confirmation, provide helpful message
+    if (error && error.message.includes('email_not_confirmed')) {
+      return { 
+        error: { 
+          message: 'Email confirmation is still enabled. Please disable it in Supabase dashboard under Authentication → Settings.' 
+        } 
+      }
+    }
+
     if (error) return { error }
 
     // Create profile after successful signup
