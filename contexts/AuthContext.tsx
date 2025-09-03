@@ -108,6 +108,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (error.code === 'PGRST116') {
           console.log('Profile not found, creating default profile...')
           await createDefaultProfile(userId)
+        } else {
+          // For other errors, try to create a default profile as fallback
+          console.log('Profile fetch failed, attempting to create default profile...')
+          await createDefaultProfile(userId)
         }
         return
       }
@@ -150,6 +154,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('Error creating profile:', error)
+        
+        // If profile already exists (duplicate key error), try to fetch it instead
+        if (error.code === '23505') {
+          console.log('Profile already exists, fetching existing profile...')
+          const { data: existingProfile, error: fetchError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', userId)
+            .single()
+          
+          if (fetchError) {
+            console.error('Error fetching existing profile:', fetchError)
+            return
+          }
+          
+          console.log('Existing profile fetched:', existingProfile)
+          setProfile(existingProfile)
+        }
         return
       }
 
