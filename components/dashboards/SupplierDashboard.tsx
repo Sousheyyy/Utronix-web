@@ -166,6 +166,31 @@ export function SupplierDashboard() {
         return
       }
 
+      // Manually assign the supplier to the order (backup to trigger)
+      console.log('Assigning supplier to order:', {
+        orderId: selectedOrder.id,
+        supplierId: profile?.id,
+        supplierRole: profile?.role
+      })
+      
+      const { error: assignError } = await supabase
+        .from('orders')
+        .update({ assigned_supplier_id: profile?.id })
+        .eq('id', selectedOrder.id)
+
+      if (assignError) {
+        console.error('Error assigning supplier to order:', assignError)
+        console.error('Assignment error details:', {
+          message: assignError.message,
+          details: assignError.details,
+          hint: assignError.hint,
+          code: assignError.code
+        })
+        // Don't fail the quote creation for this, just log it
+      } else {
+        console.log('Successfully assigned supplier to order')
+      }
+
       // Then, update the order status using the proper function to record in history
       const { error: statusError } = await supabase
         .rpc('update_order_status', {
