@@ -33,8 +33,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (mounted) {
         console.warn('Auth loading timeout - setting loading to false')
         setLoading(false)
+        
+        // If we have a user but no profile, create a temporary profile
+        if (user && !profile) {
+          console.log('Creating temporary profile due to timeout')
+          setProfile({
+            id: user.id,
+            email: user.email || '',
+            full_name: user.user_metadata?.full_name || 'Unknown User',
+            role: 'customer',
+            company_name: user.user_metadata?.company_name || null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+        }
       }
-    }, 10000) // 10 second timeout
+    }, 5000) // Reduced to 5 second timeout
 
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -126,7 +140,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('Error fetching profile:', error)
-        setProfile(null)
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        })
+        
+        // If profile doesn't exist, create a default one
+        if (error.code === 'PGRST116') {
+          console.log('Profile not found, creating default profile...')
+          await createDefaultProfile(userId)
+        } else {
+          setProfile(null)
+        }
         return
       }
 
@@ -138,9 +165,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const createDefaultProfile = async (userId: string) => {
+    try {
+      console.log('Creating default profile for user:', userId)
+      
+      // Get user email from auth
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert([
+          {
+            id: userId,
+            email: authUser?.email || '',
+            full_name: authUser?.user_metadata?.full_name || 'Unknown User',
+            role: 'customer', // Default role
+            company_name: authUser?.user_metadata?.company_name || null,
+          },
+        ])
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Error creating default profile:', error)
+        setProfile(null)
+        return
+      }
+
+      console.log('Default profile created successfully:', data)
+      setProfile(data)
+    } catch (error) {
+      console.error('Error creating default profile:', error)
+      setProfile(null)
+    }
+  }
+
   const refreshProfile = async () => {
     if (user?.id) {
       console.log('Refreshing profile...')
+      
+      // Debug: Check all profiles in the table
+      const { data: allProfiles, error: debugError } = await supabase
+        .from('profiles')
+        .select('*')
+      
+      console.log('All profiles in database:', allProfiles)
+      console.log('Debug error:', debugError)
+      
       await fetchProfile(user.id, true)
     }
   }
