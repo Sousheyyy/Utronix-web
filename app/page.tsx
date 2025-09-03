@@ -9,7 +9,7 @@ import { AdminDashboard } from '@/components/dashboards/AdminDashboard'
 import { useState } from 'react'
 
 export default function Home() {
-  const { user, profile, loading } = useAuth()
+  const { user, profile, loading, refreshProfile } = useAuth()
   const [showSignUp, setShowSignUp] = useState(false)
 
   if (loading) {
@@ -60,9 +60,15 @@ export default function Home() {
         <h2 className="text-2xl font-bold text-gray-900 mb-4">
           Role Not Assigned
         </h2>
-        <p className="text-gray-600">
+        <p className="text-gray-600 mb-6">
           Please contact an administrator to assign your role.
         </p>
+        <button
+          onClick={refreshProfile}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+        >
+          Refresh Profile
+        </button>
       </div>
     </div>
   )

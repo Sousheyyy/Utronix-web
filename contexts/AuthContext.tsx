@@ -14,6 +14,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string, role: UserRole, companyName?: string) => Promise<{ error: any }>
   signOut: () => Promise<void>
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>
+  refreshProfile: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -65,8 +66,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (session?.user) {
         await fetchProfile(session.user.id)
+        
+        // Set up real-time subscription for profile changes
+        const profileChannel = supabase
+          .channel('profile_changes')
+          .on('postgres_changes', 
+            { 
+              event: 'UPDATE', 
+              schema: 'public', 
+              table: 'profiles',
+              filter: `id=eq.${session.user.id}`
+            }, 
+            (payload) => {
+              console.log('Profile updated:', payload)
+              if (mounted) {
+                setProfile(payload.new as Profile)
+              }
+            }
+          )
+          .subscribe()
+        
+        // Store channel for cleanup
+        ;(window as any).profileChannel = profileChannel
       } else {
         setProfile(null)
+        // Clean up profile channel
+        if ((window as any).profileChannel) {
+          supabase.removeChannel((window as any).profileChannel)
+          delete (window as any).profileChannel
+        }
       }
       
       setLoading(false)
@@ -77,11 +105,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       mounted = false
       clearTimeout(timeoutId)
       subscription.unsubscribe()
+      
+      // Clean up profile channel
+      if ((window as any).profileChannel) {
+        supabase.removeChannel((window as any).profileChannel)
+        delete (window as any).profileChannel
+      }
     }
   }, [])
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string, forceRefresh = false) => {
     try {
+      console.log('Fetching profile for user:', userId, 'Force refresh:', forceRefresh)
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -94,10 +130,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return
       }
 
+      console.log('Profile fetched successfully:', data)
       setProfile(data)
     } catch (error) {
       console.error('Error fetching profile:', error)
       setProfile(null)
+    }
+  }
+
+  const refreshProfile = async () => {
+    if (user?.id) {
+      console.log('Refreshing profile...')
+      await fetchProfile(user.id, true)
     }
   }
 
@@ -189,6 +233,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut,
     updateProfile,
+    refreshProfile,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
