@@ -225,6 +225,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('Error creating profile:', profileError)
         return { error: profileError }
       }
+
+      // After successful signup and profile creation, the auth state change
+      // will automatically be triggered by Supabase, which will:
+      // 1. Set the user and session
+      // 2. Fetch the profile
+      // 3. Redirect to the appropriate dashboard
     }
 
     return { error: null }
