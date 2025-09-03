@@ -54,7 +54,7 @@ export function SignUpForm({ onToggle }: SignUpFormProps) {
       if (error) {
         toast.error(error.message || 'Failed to sign up')
       } else {
-        toast.success('Account created successfully! Please check your email for verification.')
+        toast.success('Account created successfully! You can now sign in.')
         onToggle() // Switch back to login form
       }
     } catch (error) {

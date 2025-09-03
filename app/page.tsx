@@ -1,15 +1,26 @@
 'use client'
 
+import { useAuth } from '@/contexts/AuthContext'
+import { LoginForm } from '@/components/auth/LoginForm'
+import { SignUpForm } from '@/components/auth/SignUpForm'
 import { CustomerDashboard } from '@/components/dashboards/CustomerDashboard'
 import { SupplierDashboard } from '@/components/dashboards/SupplierDashboard'
 import { AdminDashboard } from '@/components/dashboards/AdminDashboard'
 import { useState } from 'react'
-import { UserRole } from '@/types'
 
 export default function Home() {
-  const [selectedRole, setSelectedRole] = useState<UserRole | null>(null)
+  const { user, profile, loading } = useAuth()
+  const [showSignUp, setShowSignUp] = useState(false)
 
-  if (!selectedRole) {
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+      </div>
+    )
+  }
+
+  if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
@@ -17,38 +28,17 @@ export default function Home() {
             Utronix Web
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Order Management System - Demo Mode
+            Order Management System
           </p>
         </div>
 
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
           <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900 text-center mb-6">
-                Select Dashboard to View
-              </h3>
-              
-              <button
-                onClick={() => setSelectedRole('customer')}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-              >
-                Customer Dashboard
-              </button>
-              
-              <button
-                onClick={() => setSelectedRole('supplier')}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
-              >
-                Supplier Dashboard
-              </button>
-              
-              <button
-                onClick={() => setSelectedRole('admin')}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
-              >
-                Admin Dashboard
-              </button>
-            </div>
+            {showSignUp ? (
+              <SignUpForm onToggle={() => setShowSignUp(false)} />
+            ) : (
+              <LoginForm onToggle={() => setShowSignUp(true)} />
+            )}
           </div>
         </div>
       </div>
@@ -56,13 +46,24 @@ export default function Home() {
   }
 
   // Render role-based dashboard
-  if (selectedRole === 'customer') {
-    return <CustomerDashboard onBack={() => setSelectedRole(null)} />
-  } else if (selectedRole === 'supplier') {
-    return <SupplierDashboard onBack={() => setSelectedRole(null)} />
-  } else if (selectedRole === 'admin') {
-    return <AdminDashboard onBack={() => setSelectedRole(null)} />
+  if (profile?.role === 'customer') {
+    return <CustomerDashboard />
+  } else if (profile?.role === 'supplier') {
+    return <SupplierDashboard />
+  } else if (profile?.role === 'admin') {
+    return <AdminDashboard />
   }
 
-  return null
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          Role Not Assigned
+        </h2>
+        <p className="text-gray-600">
+          Please contact an administrator to assign your role.
+        </p>
+      </div>
+    </div>
+  )
 }

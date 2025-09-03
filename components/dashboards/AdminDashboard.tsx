@@ -1,26 +1,17 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/lib/supabase'
 import { Order, Profile, UpdateOrderStatusRequest, SetFinalPriceRequest } from '@/types'
 import { AdminOrderManagement } from '@/components/admin/AdminOrderManagement'
 import { SystemStats } from '@/components/admin/SystemStats'
 import { formatOrderNumber, matchesOrderNumber } from '@/lib/orderUtils'
-import { ArrowLeft, Settings, Users, Package, BarChart3, ShoppingCart, DollarSign, PieChart, Percent, X, ArrowUpDown, ArrowUp, ArrowDown, Clock, User, Edit, Upload, CheckCircle, MessageSquare, CreditCard, Truck, Factory, XCircle } from 'lucide-react'
+import { LogOut, Settings, Users, Package, BarChart3, ShoppingCart, DollarSign, PieChart, Percent, X, ArrowUpDown, ArrowUp, ArrowDown, Clock, User, Edit, Upload, CheckCircle, MessageSquare, CreditCard, Truck, Factory, XCircle } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
-interface AdminDashboardProps {
-  onBack?: () => void
-}
-
-export function AdminDashboard({ onBack }: AdminDashboardProps) {
-  // Demo profile data
-  const profile = {
-    id: 'demo-admin-id',
-    email: 'demo@admin.com',
-    full_name: 'Demo Admin',
-    role: 'admin' as const,
-    company_name: 'Utronix Admin'
-  }
+export function AdminDashboard() {
+  const { profile, signOut } = useAuth()
   const [orders, setOrders] = useState<Order[]>([])
   const [users, setUsers] = useState<Profile[]>([])
   const [loading, setLoading] = useState(true)

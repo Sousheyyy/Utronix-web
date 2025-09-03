@@ -1,28 +1,19 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/lib/supabase'
 import { Order, CreateOrderRequest, OrderStatus } from '@/types'
 import { CreateOrderForm } from '../orders/CreateOrderForm'
 import { OrderList } from '../orders/OrderList'
 import { OrderStepsInfo } from '../orders/OrderStepsInfo'
 import { FileUpload } from '../orders/FileUpload'
 import { FileUploadService } from '@/lib/fileUploadService'
-import { ArrowLeft, Plus, Package, Settings, ShoppingCart, Clock, Edit, X, Trash2 } from 'lucide-react'
+import { LogOut, Plus, Package, Settings, ShoppingCart, Clock, Edit, X, Trash2 } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
-interface CustomerDashboardProps {
-  onBack?: () => void
-}
-
-export function CustomerDashboard({ onBack }: CustomerDashboardProps) {
-  // Demo profile data
-  const profile = {
-    id: 'demo-customer-id',
-    email: 'demo@customer.com',
-    full_name: 'Demo Customer',
-    role: 'customer' as const,
-    company_name: 'Demo Company'
-  }
+export function CustomerDashboard() {
+  const { profile, signOut } = useAuth()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -48,65 +39,59 @@ export function CustomerDashboard({ onBack }: CustomerDashboardProps) {
 
   useEffect(() => {
     fetchOrders()
-  }, [])
+
+    // Set up real-time subscription for order updates
+    const channel = supabase
+      .channel('orders_changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'orders',
+          filter: `customer_id=eq.${profile?.id}`
+        }, 
+        (payload) => {
+          console.log('Real-time update received:', payload)
+          // Refresh orders when any order changes for this customer
+          fetchOrders()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [profile?.id])
 
   const fetchOrders = async () => {
     try {
-      // Demo data - simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      const demoOrders: Order[] = [
-        {
-          id: '1',
-          title: 'Custom T-Shirt Order',
-          description: 'High-quality cotton t-shirts with custom logo printing',
-          quantity: 100,
-          product_link: 'https://example.com/tshirt',
-          delivery_address: '123 Main St, New York, NY 10001',
-          phone_number: '+1-555-0123',
-          status: 'price_quoted',
-          customer_id: profile.id,
-          supplier_price: 8.50,
-          final_price: 10.20,
-          admin_margin: 1.70,
-          order_number: 1001,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          supplier_quotes: [{
-            id: '1',
-            price: 8.50,
-            notes: 'Bulk discount applied for 100+ pieces',
-            created_at: new Date().toISOString(),
-            supplier_id: 'demo-supplier-1',
-            order_id: '1',
-            supplier: {
-              id: 'demo-supplier-1',
-              full_name: 'Demo Supplier',
-              company_name: 'Print Solutions Inc'
-            }
-          }]
-        },
-        {
-          id: '2',
-          title: 'Promotional Bags',
-          description: 'Eco-friendly promotional bags for marketing campaign',
-          quantity: 500,
-          product_link: 'https://example.com/bags',
-          delivery_address: '456 Oak Ave, Los Angeles, CA 90210',
-          phone_number: '+1-555-0456',
-          status: 'payment_confirmed',
-          customer_id: profile.id,
-          supplier_price: 2.30,
-          final_price: 2.76,
-          admin_margin: 0.46,
-          order_number: 1002,
-          created_at: new Date(Date.now() - 86400000).toISOString(),
-          updated_at: new Date().toISOString(),
-          supplier_quotes: []
-        }
-      ]
-      
-      setOrders(demoOrders)
+      const { data, error } = await supabase
+        .from('orders')
+        .select(`
+          *,
+          supplier_quotes (
+            id,
+            price,
+            notes,
+            created_at,
+            supplier:profiles!supplier_quotes_supplier_id_fkey (
+              id,
+              full_name,
+              company_name
+            )
+          )
+        `)
+        .eq('customer_id', profile?.id)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        console.error('Error fetching orders:', error)
+        toast.error('Failed to fetch orders')
+        return
+      }
+
+
+      setOrders(data || [])
     } catch (error) {
       console.error('Error fetching orders:', error)
       toast.error('Failed to fetch orders')
@@ -180,10 +165,9 @@ export function CustomerDashboard({ onBack }: CustomerDashboardProps) {
     }
   }
 
-  const handleBack = () => {
-    if (onBack) {
-      onBack()
-    }
+  const handleSignOut = async () => {
+    await signOut()
+    toast.success('Signed out successfully')
   }
 
   const canEditOrder = (order: Order) => {
@@ -444,11 +428,11 @@ export function CustomerDashboard({ onBack }: CustomerDashboardProps) {
                 Customer
               </span>
               <button
-                onClick={handleBack}
+                onClick={handleSignOut}
                 className="btn-secondary flex items-center"
               >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard Selection
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
               </button>
             </div>
           </div>
