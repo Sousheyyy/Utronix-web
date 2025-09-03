@@ -16,9 +16,9 @@ export function formatOrderNumber(orderNumber?: number): string {
  * @param title - The order title
  * @returns Formatted title with order number
  */
-export function formatOrderTitle(orderNumber?: number, title: string): string {
-  if (!orderNumber) return title
-  return `#${orderNumber} - ${title}`
+export function formatOrderTitle(orderNumber?: number, title?: string): string {
+  if (!orderNumber) return title || 'Untitled Order'
+  return `#${orderNumber} - ${title || 'Untitled Order'}`
 }
 
 /**
