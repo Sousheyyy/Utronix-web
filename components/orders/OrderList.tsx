@@ -68,7 +68,7 @@ interface OrderCardProps {
 }
 
 function OrderCard({ order, userRole, onOrderSelect, onEditOrder, onCancelOrder }: OrderCardProps) {
-  const status = statusConfig[order.status]
+  const status = statusConfig[order.status] || { label: order.status, icon: Package, color: 'text-gray-600 bg-gray-100' }
   const StatusIcon = status.icon
 
   const canEditOrder = (order: Order) => {

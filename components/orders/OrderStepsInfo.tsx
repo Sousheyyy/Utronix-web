@@ -20,7 +20,7 @@ export function OrderStepsInfo() {
       </h3>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
         {orderSteps.map((step, index) => {
-          const Icon = step.icon
+          const Icon = step.icon || Package // Fallback to Package icon
           return (
             <div key={step.status} className="flex flex-col items-center text-center">
               <div className={`w-7 h-7 rounded-full flex items-center justify-center ${step.color} text-white mb-1`}>
