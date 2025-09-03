@@ -14,7 +14,6 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string, role: UserRole, companyName?: string) => Promise<{ error: any }>
   signOut: () => Promise<void>
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: any }>
-  refreshProfile: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -26,112 +25,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    let mounted = true
+    let isMounted = true
 
-    // Set a timeout to prevent infinite loading
-    const timeoutId = setTimeout(() => {
-      if (mounted) {
-        console.warn('Auth loading timeout - setting loading to false')
-        setLoading(false)
+    // Get initial session with timeout
+    const initAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession()
         
-        // If we have a user but no profile, create a temporary profile
-        if (user && !profile) {
-          console.log('Creating temporary profile due to timeout')
-          setProfile({
-            id: user.id,
-            email: user.email || '',
-            full_name: user.user_metadata?.full_name || 'Unknown User',
-            role: 'customer',
-            company_name: user.user_metadata?.company_name || null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
+        if (error) {
+          console.error('Error getting session:', error)
+        }
+        
+        if (isMounted) {
+          setSession(session)
+          setUser(session?.user ?? null)
+          if (session?.user) {
+            await fetchProfile(session.user.id)
+          }
+          setLoading(false)
+        }
+      } catch (error) {
+        console.error('Error initializing auth:', error)
+        if (isMounted) {
+          setLoading(false)
         }
       }
-    }, 5000) // Reduced to 5 second timeout
+    }
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return
-      
-      setSession(session)
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        fetchProfile(session.user.id)
-      }
-      setLoading(false)
-      clearTimeout(timeoutId)
-    }).catch((error) => {
-      console.error('Error getting initial session:', error)
-      if (mounted) {
-        setLoading(false)
-        clearTimeout(timeoutId)
-      }
-    })
+    initAuth()
 
     // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return
-      
-      setSession(session)
-      setUser(session?.user ?? null)
-      
-      if (session?.user) {
-        await fetchProfile(session.user.id)
+      if (isMounted) {
+        setSession(session)
+        setUser(session?.user ?? null)
         
-        // Set up real-time subscription for profile changes
-        const profileChannel = supabase
-          .channel('profile_changes')
-          .on('postgres_changes', 
-            { 
-              event: 'UPDATE', 
-              schema: 'public', 
-              table: 'profiles',
-              filter: `id=eq.${session.user.id}`
-            }, 
-            (payload) => {
-              console.log('Profile updated:', payload)
-              if (mounted) {
-                setProfile(payload.new as Profile)
-              }
-            }
-          )
-          .subscribe()
-        
-        // Store channel for cleanup
-        ;(window as any).profileChannel = profileChannel
-      } else {
-        setProfile(null)
-        // Clean up profile channel
-        if ((window as any).profileChannel) {
-          supabase.removeChannel((window as any).profileChannel)
-          delete (window as any).profileChannel
+        if (session?.user) {
+          await fetchProfile(session.user.id)
+        } else {
+          setProfile(null)
         }
+        
+        setLoading(false)
       }
-      
-      setLoading(false)
-      clearTimeout(timeoutId)
     })
 
     return () => {
-      mounted = false
-      clearTimeout(timeoutId)
+      isMounted = false
       subscription.unsubscribe()
-      
-      // Clean up profile channel
-      if ((window as any).profileChannel) {
-        supabase.removeChannel((window as any).profileChannel)
-        delete (window as any).profileChannel
-      }
     }
   }, [])
 
-  const fetchProfile = async (userId: string, forceRefresh = false) => {
+  const fetchProfile = async (userId: string) => {
     try {
-      console.log('Fetching profile for user:', userId, 'Force refresh:', forceRefresh)
-      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -140,79 +88,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('Error fetching profile:', error)
-        console.error('Error details:', {
+        console.error('Profile fetch error details:', {
           message: error.message,
           details: error.details,
           hint: error.hint,
           code: error.code
         })
-        
-        // If profile doesn't exist, create a default one
-        if (error.code === 'PGRST116') {
-          console.log('Profile not found, creating default profile...')
-          await createDefaultProfile(userId)
-        } else {
-          setProfile(null)
-        }
         return
       }
 
-      console.log('Profile fetched successfully:', data)
       setProfile(data)
     } catch (error) {
       console.error('Error fetching profile:', error)
-      setProfile(null)
-    }
-  }
-
-  const createDefaultProfile = async (userId: string) => {
-    try {
-      console.log('Creating default profile for user:', userId)
-      
-      // Get user email from auth
-      const { data: { user: authUser } } = await supabase.auth.getUser()
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .insert([
-          {
-            id: userId,
-            email: authUser?.email || '',
-            full_name: authUser?.user_metadata?.full_name || 'Unknown User',
-            role: 'customer', // Default role
-            company_name: authUser?.user_metadata?.company_name || null,
-          },
-        ])
-        .select()
-        .single()
-
-      if (error) {
-        console.error('Error creating default profile:', error)
-        setProfile(null)
-        return
-      }
-
-      console.log('Default profile created successfully:', data)
-      setProfile(data)
-    } catch (error) {
-      console.error('Error creating default profile:', error)
-      setProfile(null)
-    }
-  }
-
-  const refreshProfile = async () => {
-    if (user?.id) {
-      console.log('Refreshing profile...')
-      
-      // Debug: Check all profiles in the table
-      const { data: allProfiles, error: debugError } = await supabase
-        .from('profiles')
-        .select('*')
-      
-      console.log('All profiles in database:', allProfiles)
-      console.log('Debug error:', debugError)
-      
-      await fetchProfile(user.id, true)
     }
   }
 
@@ -304,7 +191,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut,
     updateProfile,
-    refreshProfile,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
