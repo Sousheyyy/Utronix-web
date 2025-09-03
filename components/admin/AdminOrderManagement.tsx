@@ -160,7 +160,6 @@ export function AdminOrderManagement({
                 >
                   <option value="request_created">Request Created</option>
                   <option value="price_quoted">Price Quoted</option>
-                  <option value="payment_pending">Payment Pending</option>
                   <option value="payment_confirmed">Payment Confirmed</option>
                   <option value="production_started">Production Started</option>
                   <option value="in_transit">In Transit</option>

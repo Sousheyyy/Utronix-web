@@ -19,7 +19,6 @@ interface OrderListProps {
 const statusConfig = {
   request_created: { label: 'Request Created', icon: Package, color: 'text-blue-600 bg-blue-100' },
   price_quoted: { label: 'Price Quoted', icon: DollarSign, color: 'text-yellow-600 bg-yellow-100' },
-  payment_pending: { label: 'Payment Pending', icon: Clock, color: 'text-orange-600 bg-orange-100' },
   payment_confirmed: { label: 'Payment Confirmed', icon: CheckCircle, color: 'text-green-600 bg-green-100' },
   production_started: { label: 'Production Started', icon: Package, color: 'text-purple-600 bg-purple-100' },
   in_transit: { label: 'In Transit', icon: Truck, color: 'text-indigo-600 bg-indigo-100' },
