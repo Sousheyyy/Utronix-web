@@ -1,17 +1,26 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAuth } from '@/contexts/AuthContext'
-import { supabase } from '@/lib/supabase'
 import { Order, CreateQuoteRequest } from '@/types'
 import { CreateQuoteForm } from '../quotes/CreateQuoteForm'
 import { OrderFiles } from '../orders/OrderFiles'
-import { LogOut, Package, DollarSign, Upload, CheckCircle, Image as ImageIcon, X } from 'lucide-react'
+import { ArrowLeft, Package, DollarSign, Upload, CheckCircle, Image as ImageIcon, X } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { formatOrderTitle, formatOrderNumber } from '@/lib/orderUtils'
 
-export function SupplierDashboard() {
-  const { profile, signOut } = useAuth()
+interface SupplierDashboardProps {
+  onBack?: () => void
+}
+
+export function SupplierDashboard({ onBack }: SupplierDashboardProps) {
+  // Demo profile data
+  const profile = {
+    id: 'demo-supplier-id',
+    email: 'demo@supplier.com',
+    full_name: 'Demo Supplier',
+    role: 'supplier' as const,
+    company_name: 'Print Solutions Inc'
+  }
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
