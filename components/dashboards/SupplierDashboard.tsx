@@ -294,6 +294,12 @@ export function SupplierDashboard() {
       return
     }
 
+    // Check if order is already assigned to another supplier
+    if (order.assigned_supplier_id && order.assigned_supplier_id !== profile?.id) {
+      toast.error('This order has already been assigned to another supplier')
+      return
+    }
+
     setSelectedOrder(order)
     setShowQuoteForm(true)
   }
@@ -475,7 +481,19 @@ export function SupplierDashboard() {
   }
 
   const getOrdersByStatus = (status: string) => {
-    return orders.filter(order => order.status === status)
+    if (status === 'request_created') {
+      // For requests, show only unassigned orders (available to all suppliers)
+      return orders.filter(order => 
+        order.status === status && 
+        !order.assigned_supplier_id
+      )
+    } else {
+      // For all other statuses, show only orders assigned to this supplier
+      return orders.filter(order => 
+        order.status === status && 
+        order.assigned_supplier_id === profile?.id
+      )
+    }
   }
 
   const getContainerColor = (status: string) => {
@@ -1178,10 +1196,15 @@ interface OrderCardProps {
 function OrderCard({ order, onViewDetails, currentSupplierId }: OrderCardProps) {
   const currentSupplierQuote = order.supplier_quotes?.find(quote => quote.supplier_id === currentSupplierId)
   const hasQuoted = currentSupplierQuote !== undefined
+  const isAssignedToOther = order.assigned_supplier_id && order.assigned_supplier_id !== currentSupplierId
 
   return (
     <div 
-      className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer"
+      className={`bg-white rounded-lg shadow-sm border p-4 transition-shadow cursor-pointer ${
+        isAssignedToOther 
+          ? 'border-gray-300 bg-gray-50 opacity-75' 
+          : 'border-gray-200 hover:shadow-md'
+      }`}
       onClick={() => onViewDetails && onViewDetails(order)}
     >
       <div className="mb-3">
@@ -1230,6 +1253,12 @@ function OrderCard({ order, onViewDetails, currentSupplierId }: OrderCardProps) 
       {hasQuoted && (
         <div className="text-xs text-green-600 font-medium text-center py-2">
           Quote Submitted
+        </div>
+      )}
+
+      {isAssignedToOther && (
+        <div className="text-xs text-orange-600 font-medium text-center py-2 bg-orange-50 rounded">
+          Assigned to Another Supplier
         </div>
       )}
     </div>

@@ -48,6 +48,7 @@ export interface Order {
   payment_confirmed_at?: string
   supplier_image_url?: string
   supplier_completed_at?: string
+  assigned_supplier_id?: string
   uploaded_files?: UploadedFile[]
   files_uploaded_at?: string
   created_at: string
