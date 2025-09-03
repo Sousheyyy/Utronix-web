@@ -5,7 +5,7 @@ export class FileUploadService {
   private static readonly BUCKET_NAME = 'order-files'
   private static readonly MAX_FILE_SIZE = 16 * 1024 * 1024 // 16MB
 
-  static async uploadFiles(orderId: string, files: File[]): Promise<UploadedFile[]> {
+  static async uploadFiles(files: File[], orderId: string): Promise<UploadedFile[]> {
     if (files.length === 0) return []
 
     const uploadedFiles: UploadedFile[] = []

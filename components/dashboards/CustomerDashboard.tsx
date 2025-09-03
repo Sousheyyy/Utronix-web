@@ -132,7 +132,7 @@ export function CustomerDashboard() {
       // Upload files if any
       if (orderData.files && orderData.files.length > 0) {
         try {
-          const uploadedFiles = await FileUploadService.uploadFiles(data.id, orderData.files)
+          const uploadedFiles = await FileUploadService.uploadFiles(orderData.files, data.id)
           
           // Update order with uploaded files information
           const { error: updateError } = await supabase
