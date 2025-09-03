@@ -48,6 +48,7 @@ export function SupplierDashboard() {
 
   const fetchOrders = async () => {
     try {
+      console.log('Fetching orders for supplier:', profile?.id, 'Role:', profile?.role)
 
       const { data, error } = await supabase
         .from('orders')
@@ -70,11 +71,17 @@ export function SupplierDashboard() {
 
       if (error) {
         console.error('Error fetching orders:', error)
-        toast.error('Failed to fetch orders')
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        })
+        toast.error(`Failed to fetch orders: ${error.message}`)
         return
       }
 
-
+      console.log('Successfully fetched orders:', data?.length || 0, 'orders')
       setOrders(data || [])
     } catch (error) {
       console.error('Error fetching orders:', error)
