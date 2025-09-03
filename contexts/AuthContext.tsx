@@ -25,20 +25,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let mounted = true
+
+    // Set a timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      if (mounted) {
+        console.warn('Auth loading timeout - setting loading to false')
+        setLoading(false)
+      }
+    }, 10000) // 10 second timeout
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return
+      
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
         fetchProfile(session.user.id)
       }
       setLoading(false)
+      clearTimeout(timeoutId)
+    }).catch((error) => {
+      console.error('Error getting initial session:', error)
+      if (mounted) {
+        setLoading(false)
+        clearTimeout(timeoutId)
+      }
     })
 
     // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return
+      
       setSession(session)
       setUser(session?.user ?? null)
       
@@ -49,9 +70,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       setLoading(false)
+      clearTimeout(timeoutId)
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      mounted = false
+      clearTimeout(timeoutId)
+      subscription.unsubscribe()
+    }
   }, [])
 
   const fetchProfile = async (userId: string) => {
@@ -64,12 +90,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('Error fetching profile:', error)
+        setProfile(null)
         return
       }
 
       setProfile(data)
     } catch (error) {
       console.error('Error fetching profile:', error)
+      setProfile(null)
     }
   }
 
