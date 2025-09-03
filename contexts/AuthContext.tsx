@@ -80,11 +80,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      console.log('Fetching profile for user:', userId)
+      
+      // Add timeout to prevent hanging
+      const profilePromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single()
+
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+      )
+
+      const { data, error } = await Promise.race([profilePromise, timeoutPromise]) as any
 
       if (error) {
         console.error('Error fetching profile:', error)
@@ -94,21 +103,83 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           hint: error.hint,
           code: error.code
         })
+        
+        // If profile doesn't exist, create a default one
+        if (error.code === 'PGRST116') {
+          console.log('Profile not found, creating default profile...')
+          await createDefaultProfile(userId)
+        }
         return
       }
 
+      console.log('Profile fetched successfully:', data)
       setProfile(data)
     } catch (error) {
       console.error('Error fetching profile:', error)
+      if (error.message === 'Profile fetch timeout') {
+        console.error('Profile fetch timed out - possible RLS or connection issue')
+      }
+    }
+  }
+
+  const createDefaultProfile = async (userId: string) => {
+    try {
+      console.log('Creating default profile for user:', userId)
+      
+      const { data: userData } = await supabase.auth.getUser()
+      const user = userData.user
+      
+      if (!user) {
+        console.error('No user data available for profile creation')
+        return
+      }
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert([
+          {
+            id: userId,
+            email: user.email,
+            full_name: user.user_metadata?.full_name || 'User',
+            role: user.user_metadata?.role || 'customer',
+            company_name: user.user_metadata?.company_name || null,
+          },
+        ])
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Error creating profile:', error)
+        return
+      }
+
+      console.log('Default profile created:', data)
+      setProfile(data)
+    } catch (error) {
+      console.error('Error creating default profile:', error)
     }
   }
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    return { error }
+    try {
+      console.log('Attempting to sign in user:', email)
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (error) {
+        console.error('Sign in error:', error)
+        return { error }
+      }
+
+      console.log('Sign in successful:', data.user?.id)
+      return { error: null }
+    } catch (error) {
+      console.error('Unexpected sign in error:', error)
+      return { error: { message: 'An unexpected error occurred during sign in' } }
+    }
   }
 
   const signUp = async (email: string, password: string, fullName: string, role: UserRole, companyName?: string) => {
