@@ -17,6 +17,14 @@ interface OrderListProps {
   onCancelOrder?: (order: Order) => void
 }
 
+interface OrderCardProps {
+  order: Order
+  userRole: UserRole
+  onOrderSelect?: (order: Order) => void
+  onEditOrder?: (order: Order) => void
+  onCancelOrder?: (order: Order) => void
+}
+
 const statusConfig = {
   admin_review: { label: 'Under Review', icon: Eye, color: 'text-orange-600 bg-orange-100' },
   request_created: { label: 'Request Created', icon: Package, color: 'text-blue-600 bg-blue-100' },
@@ -59,14 +67,6 @@ export const OrderList = React.memo(function OrderList({ orders, userRole, onOrd
       ))}
     </div>
   )
-}
-
-interface OrderCardProps {
-  order: Order
-  userRole: UserRole
-  onOrderSelect?: (order: Order) => void
-  onEditOrder?: (order: Order) => void
-  onCancelOrder?: (order: Order) => void
 }
 
 function OrderCard({ order, userRole, onOrderSelect, onEditOrder, onCancelOrder }: OrderCardProps) {
