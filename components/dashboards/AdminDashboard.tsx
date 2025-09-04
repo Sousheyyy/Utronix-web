@@ -944,7 +944,7 @@ export function AdminDashboard() {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">
                               {order.final_price && order.supplier_price ? 
-                                `+$${((order.final_price - order.supplier_price) * order.quantity).toFixed(2)}` : 
+                                `+$${(order.final_price - order.supplier_price).toFixed(2)}` : 
                                 '-'
                               }
                             </td>
@@ -1397,7 +1397,7 @@ export function AdminDashboard() {
                        <div>
                          <label className="block text-sm font-medium text-gray-700 mb-1">Profit</label>
                          <div className="text-sm font-medium text-green-600 bg-gray-100 px-3 py-2 rounded-md min-h-[40px]">
-                           ${((selectedOrder.final_price || 0) - (selectedOrder.supplier_price || 0)) * selectedOrder.quantity}
+                           ${((selectedOrder.final_price || 0) - (selectedOrder.supplier_price || 0)).toFixed(2)}
                          </div>
                        </div>
                      </div>

@@ -39,7 +39,7 @@ export function SystemStats({ orders, users }: SystemStatsProps) {
   // Calculate profit analytics
   const totalProfit = orders
     .filter(order => order.final_price && order.supplier_price)
-    .reduce((sum, order) => sum + ((order.final_price || 0) - (order.supplier_price || 0)) * order.quantity, 0)
+    .reduce((sum, order) => sum + ((order.final_price || 0) - (order.supplier_price || 0)), 0)
 
   const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
   const averageProfitPerOrder = totalOrders > 0 ? totalProfit / totalOrders : 0
