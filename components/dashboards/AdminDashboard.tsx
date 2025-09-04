@@ -1250,7 +1250,7 @@ export function AdminDashboard() {
                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
                            />
                          ) : (
-                           <div className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded-md min-h-[80px]">
+                           <div className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded-md min-h-[80px] break-words whitespace-pre-wrap">
                              {selectedOrder.description || <span className="text-gray-400 italic">No description</span>}
                            </div>
                          )}
@@ -1449,7 +1449,7 @@ export function AdminDashboard() {
                              placeholder="Enter delivery address"
                            />
                          ) : (
-                           <div className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded-md min-h-[80px]">
+                           <div className="text-sm text-gray-900 bg-gray-100 px-3 py-2 rounded-md min-h-[80px] break-words whitespace-pre-wrap">
                              {selectedOrder.delivery_address || <span className="text-gray-400 italic">No delivery address</span>}
                            </div>
                          )}
