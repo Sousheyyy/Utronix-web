@@ -681,7 +681,7 @@ export function SupplierDashboard() {
       'payment_confirmed': 'text-green-600 bg-green-100',
       'production_started': 'text-purple-600 bg-purple-100',
       'in_transit': 'text-indigo-600 bg-indigo-100',
-      'delivered': 'text-green-600 bg-green-100',
+      'delivered': 'text-gray-600 bg-gray-100',
       'canceled': 'text-red-600 bg-red-100'
     }
     return colors[status as keyof typeof colors] || 'text-gray-600 bg-gray-100'
@@ -694,7 +694,7 @@ export function SupplierDashboard() {
       'payment_confirmed': 'bg-green-50',
       'production_started': 'bg-purple-50',
       'in_transit': 'bg-indigo-50',
-      'delivered': 'bg-green-50',
+      'delivered': 'bg-gray-50',
       'canceled': 'bg-red-50'
     }
     return colors[status as keyof typeof colors] || 'bg-gray-50'
@@ -799,9 +799,9 @@ export function SupplierDashboard() {
             </div>
 
             {/* Delivered */}
-            <div className="bg-green-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-green-600">{statusCounts.delivered}</div>
-              <div className="text-sm text-green-600">Delivered</div>
+            <div className="bg-gray-50 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-gray-600">{statusCounts.delivered}</div>
+              <div className="text-sm text-gray-600">Delivered</div>
             </div>
 
             {/* Canceled */}
