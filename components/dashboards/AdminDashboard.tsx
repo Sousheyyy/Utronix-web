@@ -413,6 +413,34 @@ export function AdminDashboard() {
     }
   }
 
+  const handleApproveOrder = async (order: Order) => {
+    try {
+      await handleUpdateOrderStatus({
+        order_id: order.id,
+        status: 'request_created',
+        notes: 'Order approved by admin and sent to suppliers'
+      })
+      toast.success('Order approved and sent to suppliers')
+    } catch (error) {
+      console.error('Error approving order:', error)
+      toast.error('Failed to approve order')
+    }
+  }
+
+  const handleRejectOrder = async (order: Order) => {
+    try {
+      await handleUpdateOrderStatus({
+        order_id: order.id,
+        status: 'canceled',
+        notes: 'Order rejected by admin'
+      })
+      toast.success('Order rejected')
+    } catch (error) {
+      console.error('Error rejecting order:', error)
+      toast.error('Failed to reject order')
+    }
+  }
+
   const getOrdersCreated = () => {
     return orders.filter(order => order.status === 'request_created').length
   }
@@ -1361,22 +1389,58 @@ export function AdminDashboard() {
                        )}
 
                        <div>
-                         <label className="block text-sm font-medium text-gray-700 mb-1">Customer Price ($)</label>
+                         <label className="block text-sm font-medium text-gray-700 mb-1">Customer Price</label>
                          {detailsEditMode ? (
-                           <div className="relative">
-                             <input
-                               type="number"
-                               step="0.01"
-                               min="0"
-                               value={detailsEditForm.final_price}
-                               onChange={(e) => handleDetailsEditFormChange('final_price', e.target.value)}
-                               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
-                               placeholder="0.00"
-                               readOnly={detailsEditForm.supplier_price ? true : false}
-                             />
+                           <div className="space-y-3">
+                             {/* Direct Price Input */}
+                             <div>
+                               <label className="block text-xs font-medium text-gray-600 mb-1">Direct Price ($)</label>
+                               <input
+                                 type="number"
+                                 step="0.01"
+                                 min="0"
+                                 value={detailsEditForm.final_price}
+                                 onChange={(e) => handleDetailsEditFormChange('final_price', e.target.value)}
+                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                                 placeholder="0.00"
+                               />
+                             </div>
+                             
+                             {/* Percentage Input */}
                              {detailsEditForm.supplier_price && (
-                               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                 <span className="text-green-600 text-sm font-medium">+20%</span>
+                               <div>
+                                 <label className="block text-xs font-medium text-gray-600 mb-1">Profit Margin (%)</label>
+                                 <div className="flex space-x-2">
+                                   <input
+                                     type="number"
+                                     step="0.1"
+                                     min="0"
+                                     max="1000"
+                                     value={detailsEditForm.final_price && detailsEditForm.supplier_price ? 
+                                       (((parseFloat(detailsEditForm.final_price) - parseFloat(detailsEditForm.supplier_price)) / parseFloat(detailsEditForm.supplier_price)) * 100).toFixed(1) : 
+                                       '20'
+                                     }
+                                     onChange={(e) => {
+                                       const percentage = parseFloat(e.target.value)
+                                       if (!isNaN(percentage) && detailsEditForm.supplier_price) {
+                                         const supplierPrice = parseFloat(detailsEditForm.supplier_price)
+                                         const customerPrice = supplierPrice * (1 + percentage / 100)
+                                         handleDetailsEditFormChange('final_price', customerPrice.toFixed(2))
+                                       }
+                                     }}
+                                     className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                                     placeholder="20.0"
+                                   />
+                                   <span className="px-3 py-2 text-sm text-gray-500 bg-gray-100 rounded-md">%</span>
+                                 </div>
+                                 <p className="text-xs text-gray-500 mt-1">
+                                   Supplier: ${detailsEditForm.supplier_price} | 
+                                   Customer: ${detailsEditForm.final_price || '0.00'} | 
+                                   Profit: ${detailsEditForm.final_price && detailsEditForm.supplier_price ? 
+                                     (parseFloat(detailsEditForm.final_price) - parseFloat(detailsEditForm.supplier_price)).toFixed(2) : 
+                                     '0.00'
+                                   }
+                                 </p>
                                </div>
                              )}
                            </div>
@@ -1591,12 +1655,35 @@ export function AdminDashboard() {
 
                {/* Modal Footer */}
                <div className="flex justify-between mt-8">
-                 <button
-                   onClick={() => handleDeleteOrder(selectedOrder)}
-                   className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
-                 >
-                   Delete Order
-                 </button>
+                 <div className="flex space-x-3">
+                   <button
+                     onClick={() => handleDeleteOrder(selectedOrder)}
+                     className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors"
+                   >
+                     Delete Order
+                   </button>
+                   
+                   {/* Approve/Reject buttons for admin_review orders */}
+                   {selectedOrder.status === 'admin_review' && !detailsEditMode && (
+                     <>
+                       <button
+                         onClick={() => handleApproveOrder(selectedOrder)}
+                         className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors flex items-center"
+                       >
+                         <CheckCircle className="h-4 w-4 mr-2" />
+                         Approve Order
+                       </button>
+                       <button
+                         onClick={() => handleRejectOrder(selectedOrder)}
+                         className="px-4 py-2 text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 rounded-md transition-colors flex items-center"
+                       >
+                         <X className="h-4 w-4 mr-2" />
+                         Reject Order
+                       </button>
+                     </>
+                   )}
+                 </div>
+                 
                  <div className="flex space-x-3">
                    {detailsEditMode ? (
                      <>
