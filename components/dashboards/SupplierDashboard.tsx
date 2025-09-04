@@ -365,6 +365,30 @@ export function SupplierDashboard() {
     setShowImageUpload(true)
   }
 
+  const handleMoveToDepo = async (orderId: string) => {
+    try {
+      const { error } = await supabase
+        .rpc('update_order_status', {
+          p_order_id: orderId,
+          p_status: 'production_started',
+          p_notes: 'Order moved to depo by supplier',
+          p_changed_by: profile?.id
+        })
+
+      if (error) {
+        console.error('Error updating order status:', error)
+        toast.error(`Failed to move order to depo: ${error.message}`)
+        return
+      }
+
+      toast.success('Order moved to depo successfully')
+      fetchOrders()
+    } catch (error) {
+      console.error('Error moving order to depo:', error)
+      toast.error('Failed to move order to depo')
+    }
+  }
+
   const handleEditQuote = (order: Order) => {
     setSelectedOrder(order)
     setShowEditQuoteForm(true)
@@ -699,7 +723,6 @@ export function SupplierDashboard() {
           {/* Request Orders Table */}
           {requestOrders.length > 0 && (
             <div className="mb-8">
-              <h3 className="text-md font-medium text-gray-900 mb-4">New Requests ({requestOrders.length})</h3>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-blue-50">
@@ -1261,16 +1284,27 @@ export function SupplierDashboard() {
                   )}
 
                   {selectedOrder.status === 'payment_confirmed' && (
-                    <button
-                      onClick={() => {
-                        handleCloseOrderDetails()
-                        handleImageUpload(selectedOrder)
-                      }}
-                      className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors flex items-center"
-                    >
-                      <Upload className="h-4 w-4 mr-2" />
-                      Add Image & Complete
-                    </button>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => {
+                          handleCloseOrderDetails()
+                          handleImageUpload(selectedOrder)
+                        }}
+                        className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors flex items-center"
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Add Image & Complete
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleCloseOrderDetails()
+                          handleMoveToDepo(selectedOrder.id)
+                        }}
+                        className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-md transition-colors"
+                      >
+                        Complete Without Image
+                      </button>
+                    </div>
                   )}
 
                   {selectedOrder.status === 'production_started' && (
