@@ -59,7 +59,6 @@ export function AdminDashboard() {
           table: 'orders' 
         }, 
         (payload) => {
-          console.log('Real-time order update:', payload)
           handleOrderUpdate(payload)
         }
       )
@@ -70,16 +69,13 @@ export function AdminDashboard() {
           table: 'orders'
         },
         (payload) => {
-          console.log('New order created:', payload)
           handleNewOrder(payload)
         }
       )
       .subscribe((status) => {
-        console.log('Admin subscription status:', status)
         if (status === 'SUBSCRIBED') {
-          console.log('Successfully subscribed to admin order updates')
+          // Successfully subscribed to admin order updates
         } else if (status === 'CHANNEL_ERROR') {
-          console.error('Admin subscription error, falling back to periodic refresh')
           startPeriodicRefresh()
         }
       })
@@ -106,13 +102,11 @@ export function AdminDashboard() {
 
   // Handle real-time order updates
   const handleOrderUpdate = async (payload: any) => {
-    console.log('Order updated:', payload)
     await refreshData()
   }
 
   // Handle new order creation
   const handleNewOrder = async (payload: any) => {
-    console.log('New order created:', payload)
     setNewOrderCount(prev => prev + 1)
     await refreshData()
     

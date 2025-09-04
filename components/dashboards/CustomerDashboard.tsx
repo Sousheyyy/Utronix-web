@@ -53,7 +53,6 @@ export function CustomerDashboard() {
           filter: `customer_id=eq.${profile?.id}`
         }, 
         (payload) => {
-          console.log('Real-time update received:', payload)
           // Refresh orders when any order changes for this customer
           fetchOrders()
         }
@@ -104,8 +103,6 @@ export function CustomerDashboard() {
 
   const handleCreateOrder = async (orderData: CreateOrderRequest) => {
     try {
-      console.log('Creating order with data:', orderData)
-      console.log('Profile ID:', profile?.id)
       
       if (!profile?.id) {
         throw new Error('User profile not found. Please try logging in again.')
@@ -350,10 +347,6 @@ export function CustomerDashboard() {
     if (!orderToCancel) return
 
     try {
-      console.log('Cancelling order:', orderToCancel.id, 'Current status:', orderToCancel.status)
-      console.log('Order customer_id:', orderToCancel.customer_id)
-      console.log('Current user ID:', profile?.id)
-      console.log('Customer IDs match:', orderToCancel.customer_id === profile?.id)
       
       // First, let's test if we can find the order by ID
       const { data: testData, error: testError } = await supabase
@@ -380,14 +373,12 @@ export function CustomerDashboard() {
         return
       }
 
-      console.log('Order canceled successfully')
 
       toast.success('Order cancelled successfully')
       setCancelModalOpen(false)
       setOrderToCancel(null)
       
       // Force refresh the orders
-      console.log('Refreshing orders after cancellation...')
       await fetchOrders()
     } catch (error) {
       console.error('Error cancelling order:', error)

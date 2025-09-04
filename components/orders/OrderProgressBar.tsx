@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import { OrderStatus } from '@/types'
 import { Package, DollarSign, Clock, CheckCircle, Truck, Globe, Home, X } from 'lucide-react'
 
@@ -16,7 +17,7 @@ const orderSteps = [
   { status: 'delivered' as OrderStatus, label: 'Delivered', icon: Home, color: 'bg-green-600' },
 ]
 
-export function OrderProgressBar({ currentStatus }: OrderProgressBarProps) {
+export const OrderProgressBar = React.memo(function OrderProgressBar({ currentStatus }: OrderProgressBarProps) {
   const currentIndex = orderSteps.findIndex(step => step.status === currentStatus)
   
   // Handle canceled status separately
@@ -56,4 +57,4 @@ export function OrderProgressBar({ currentStatus }: OrderProgressBarProps) {
       })}
     </div>
   )
-}
+})

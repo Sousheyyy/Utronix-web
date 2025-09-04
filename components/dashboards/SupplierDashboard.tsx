@@ -63,7 +63,6 @@ export function SupplierDashboard() {
           filter: `supplier_id=eq.${profile?.id}`
         }, 
         (payload) => {
-          console.log('Real-time order update:', payload)
           handleOrderUpdate(payload)
         }
       )
@@ -75,16 +74,13 @@ export function SupplierDashboard() {
           filter: `status=eq.request_created`
         },
         (payload) => {
-          console.log('New order request:', payload)
           handleNewOrder(payload)
         }
       )
       .subscribe((status) => {
-        console.log('Subscription status:', status)
         if (status === 'SUBSCRIBED') {
-          console.log('Successfully subscribed to order updates')
+          // Successfully subscribed to order updates
         } else if (status === 'CHANNEL_ERROR') {
-          console.error('Subscription error, falling back to periodic refresh')
           startPeriodicRefresh()
         }
       })
@@ -111,13 +107,11 @@ export function SupplierDashboard() {
 
   // Handle real-time order updates
   const handleOrderUpdate = async (payload: any) => {
-    console.log('Order updated:', payload)
     await refreshOrders()
   }
 
   // Handle new order requests
   const handleNewOrder = async (payload: any) => {
-    console.log('New order request received:', payload)
     setNewOrderCount(prev => prev + 1)
     await refreshOrders()
     
@@ -158,7 +152,6 @@ export function SupplierDashboard() {
 
   const fetchOrders = async () => {
     try {
-      console.log('Fetching orders for supplier:', profile?.id, 'Role:', profile?.role)
 
       const { data, error } = await supabase
         .from('orders')
@@ -191,7 +184,6 @@ export function SupplierDashboard() {
         return
       }
 
-      console.log('Successfully fetched orders:', data?.length || 0, 'orders')
       setOrders(data || [])
     } catch (error) {
       console.error('Error fetching orders:', error)
@@ -204,12 +196,6 @@ export function SupplierDashboard() {
   const handleCreateQuote = async (quoteData: CreateQuoteRequest) => {
     if (!selectedOrder) return
 
-    console.log('Creating quote with data:', {
-      quoteData,
-      selectedOrder: selectedOrder.id,
-      profile: profile?.id,
-      profileRole: profile?.role
-    })
 
     try {
       // First, try to update existing quote or create new one
@@ -277,11 +263,6 @@ export function SupplierDashboard() {
       }
 
       // Manually assign the supplier to the order (backup to trigger)
-      console.log('Assigning supplier to order:', {
-        orderId: selectedOrder.id,
-        supplierId: profile?.id,
-        supplierRole: profile?.role
-      })
       
       const { error: assignError } = await supabase
         .from('orders')
@@ -298,7 +279,6 @@ export function SupplierDashboard() {
         })
         // Don't fail the quote creation for this, just log it
       } else {
-        console.log('Successfully assigned supplier to order')
       }
 
       // Then, update the order status using the proper function to record in history
@@ -329,12 +309,6 @@ export function SupplierDashboard() {
   const handleUpdateQuote = async (quoteData: CreateQuoteRequest) => {
     if (!selectedOrder) return
 
-    console.log('Updating quote with data:', {
-      quoteData,
-      selectedOrder: selectedOrder.id,
-      profile: profile?.id,
-      profileRole: profile?.role
-    })
 
     try {
       // Update the existing quote
@@ -379,12 +353,6 @@ export function SupplierDashboard() {
         return
       }
       
-      console.log('Calculated values:', {
-        supplierPrice: quoteData.price,
-        customerPrice,
-        profit,
-        profitPercentage: ((profit / quoteData.price) * 100).toFixed(2) + '%'
-      })
 
       // Update the order with new pricing
       const updateData = { 
@@ -408,7 +376,6 @@ export function SupplierDashboard() {
         return
       }
 
-      console.log('Successfully updated order pricing:', data)
       setShowEditQuoteForm(false)
       setSelectedOrder(null)
       fetchOrders()
@@ -512,8 +479,6 @@ export function SupplierDashboard() {
       const fileName = `${selectedOrder.id}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExtension}`
 
       // Try to upload to Supabase Storage
-      console.log('Uploading image with filename:', fileName)
-      console.log('User profile:', profile)
       
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('order-images')

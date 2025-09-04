@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import { Order, UserRole } from '@/types'
 import { format } from 'date-fns'
 import { Package, DollarSign, Clock, CheckCircle, Truck, Globe, Home, Edit, Trash2, Eye } from 'lucide-react'
@@ -28,7 +29,7 @@ const statusConfig = {
   canceled: { label: 'Canceled', icon: Trash2, color: 'text-red-600 bg-red-100' },
 }
 
-export function OrderList({ orders, userRole, onOrderUpdate, onOrderSelect, onEditOrder, onCancelOrder }: OrderListProps) {
+export const OrderList = React.memo(function OrderList({ orders, userRole, onOrderUpdate, onOrderSelect, onEditOrder, onCancelOrder }: OrderListProps) {
   if (orders.length === 0) {
     return (
       <div className="text-center py-12">
@@ -238,4 +239,4 @@ function OrderCard({ order, userRole, onOrderSelect, onEditOrder, onCancelOrder 
       </div>
     </div>
   )
-}
+})
