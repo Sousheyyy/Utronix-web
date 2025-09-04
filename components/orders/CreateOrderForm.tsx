@@ -73,6 +73,7 @@ export function CreateOrderForm({ onSubmit, onCancel }: CreateOrderFormProps) {
   }
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <label htmlFor="title" className="block text-sm font-medium text-gray-700">
@@ -279,5 +280,6 @@ export function CreateOrderForm({ onSubmit, onCancel }: CreateOrderFormProps) {
         </div>
       </div>
     )}
+    </>
   )
 }
