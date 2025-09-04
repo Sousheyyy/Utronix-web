@@ -2,7 +2,7 @@
 
 import { Order, UserRole } from '@/types'
 import { format } from 'date-fns'
-import { Package, DollarSign, Clock, CheckCircle, Truck, Globe, Home, Edit, Trash2 } from 'lucide-react'
+import { Package, DollarSign, Clock, CheckCircle, Truck, Globe, Home, Edit, Trash2, Eye } from 'lucide-react'
 import { OrderProgressBar } from './OrderProgressBar'
 import { OrderFiles } from './OrderFiles'
 import { formatOrderTitle } from '@/lib/orderUtils'
@@ -17,6 +17,7 @@ interface OrderListProps {
 }
 
 const statusConfig = {
+  admin_review: { label: 'Under Review', icon: Eye, color: 'text-orange-600 bg-orange-100' },
   request_created: { label: 'Request Created', icon: Package, color: 'text-blue-600 bg-blue-100' },
   price_quoted: { label: 'Price Quoted', icon: DollarSign, color: 'text-yellow-600 bg-yellow-100' },
   payment_confirmed: { label: 'Payment Confirmed', icon: CheckCircle, color: 'text-green-600 bg-green-100' },

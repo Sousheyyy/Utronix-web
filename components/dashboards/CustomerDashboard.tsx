@@ -121,6 +121,7 @@ export function CustomerDashboard() {
           product_link: orderData.product_link || null,
           delivery_address: orderData.delivery_address || null,
           phone_number: orderData.phone_number || null,
+          status: 'admin_review'
         }])
         .select()
         .single()
@@ -129,6 +130,22 @@ export function CustomerDashboard() {
         console.error('Error creating order:', error)
         toast.error(`Failed to create order: ${error.message}`)
         throw error // This will cause the onSubmit promise to reject
+      }
+
+      // Add status history entry for admin_review
+      const { error: historyError } = await supabase
+        .from('order_status_history')
+        .insert([{
+          order_id: data.id,
+          status: 'admin_review',
+          changed_at: new Date().toISOString(),
+          changed_by: profile?.id,
+          notes: 'Order created and sent for admin review'
+        }])
+
+      if (historyError) {
+        console.error('Error creating status history:', historyError)
+        // Don't throw error here, order was created successfully
       }
 
       // Upload files if any
@@ -173,7 +190,7 @@ export function CustomerDashboard() {
   }
 
   const canEditOrder = (order: Order) => {
-    return order.status === 'request_created' || order.status === 'price_quoted'
+    return order.status === 'admin_review' || order.status === 'request_created' || order.status === 'price_quoted'
   }
 
   const canCancelOrder = (order: Order) => {

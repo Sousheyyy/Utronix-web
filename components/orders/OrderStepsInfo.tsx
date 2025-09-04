@@ -1,8 +1,9 @@
 'use client'
 
-import { Package, DollarSign, Clock, CheckCircle, Truck, Globe, Home } from 'lucide-react'
+import { Package, DollarSign, Clock, CheckCircle, Truck, Globe, Home, Eye } from 'lucide-react'
 
 const orderSteps = [
+  { status: 'admin_review', label: 'Under Review', icon: Eye, color: 'bg-orange-500' },
   { status: 'request_created', label: 'Request Created', icon: Package, color: 'bg-blue-500' },
   { status: 'price_quoted', label: 'Price Quoted', icon: DollarSign, color: 'bg-yellow-500' },
   { status: 'payment_confirmed', label: 'Payment Confirmed', icon: CheckCircle, color: 'bg-green-500' },

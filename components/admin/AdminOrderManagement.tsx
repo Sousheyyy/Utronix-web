@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Order, Profile, UpdateOrderStatusRequest, SetFinalPriceRequest, OrderStatus } from '@/types'
 import { format } from 'date-fns'
-import { Package, DollarSign, Settings, CheckCircle } from 'lucide-react'
+import { Package, DollarSign, Settings, CheckCircle, X } from 'lucide-react'
 
 interface AdminOrderManagementProps {
   orders: Order[]
@@ -75,6 +75,30 @@ export function AdminOrderManagement({
            !order.final_price
   }
 
+  const handleApproveOrder = async (order: Order) => {
+    try {
+      await onOrderUpdate({
+        order_id: order.id,
+        status: 'request_created',
+        notes: 'Order approved by admin and sent to suppliers'
+      })
+    } catch (error) {
+      console.error('Error approving order:', error)
+    }
+  }
+
+  const handleRejectOrder = async (order: Order) => {
+    try {
+      await onOrderUpdate({
+        order_id: order.id,
+        status: 'canceled',
+        notes: 'Order rejected by admin'
+      })
+    } catch (error) {
+      console.error('Error rejecting order:', error)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -91,6 +115,7 @@ export function AdminOrderManagement({
             <div className="flex justify-between items-start mb-3">
               <h3 className="text-lg font-medium text-gray-900">{order.title}</h3>
               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                order.status === 'admin_review' ? 'text-orange-600 bg-orange-100' :
                 order.status === 'request_created' ? 'text-blue-600 bg-blue-100' :
                 order.status === 'price_quoted' ? 'text-yellow-600 bg-yellow-100' :
                 'text-gray-600 bg-gray-100'
@@ -122,22 +147,43 @@ export function AdminOrderManagement({
             )}
 
             <div className="flex space-x-2">
-              <button
-                onClick={() => openStatusModal(order)}
-                className="btn-secondary flex-1 text-sm"
-              >
-                <Settings className="h-4 w-4 mr-1" />
-                Update Status
-              </button>
-              
-              {canSetFinalPrice(order) && (
-                <button
-                  onClick={() => openPricingModal(order)}
-                  className="btn-primary flex-1 text-sm"
-                >
-                  <DollarSign className="h-4 w-4 mr-1" />
-                  Set Price
-                </button>
+              {order.status === 'admin_review' ? (
+                <>
+                  <button
+                    onClick={() => handleApproveOrder(order)}
+                    className="btn-primary flex-1 text-sm"
+                  >
+                    <CheckCircle className="h-4 w-4 mr-1" />
+                    Approve
+                  </button>
+                  <button
+                    onClick={() => handleRejectOrder(order)}
+                    className="btn-danger flex-1 text-sm"
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Reject
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => openStatusModal(order)}
+                    className="btn-secondary flex-1 text-sm"
+                  >
+                    <Settings className="h-4 w-4 mr-1" />
+                    Update Status
+                  </button>
+                  
+                  {canSetFinalPrice(order) && (
+                    <button
+                      onClick={() => openPricingModal(order)}
+                      className="btn-primary flex-1 text-sm"
+                    >
+                      <DollarSign className="h-4 w-4 mr-1" />
+                      Set Price
+                    </button>
+                  )}
+                </>
               )}
             </div>
           </div>
