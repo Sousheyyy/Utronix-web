@@ -1246,10 +1246,6 @@ function OrderCard({ order, onViewDetails, currentSupplierId }: OrderCardProps) 
           <span className="text-gray-500">Qty:</span>
           <span className="font-medium">{order.quantity}</span>
         </div>
-        <div className="flex justify-between text-xs">
-          <span className="text-gray-500">Customer:</span>
-          <span className="font-medium">{order.customer?.full_name}</span>
-        </div>
         {currentSupplierQuote && (
           <div className="flex justify-between text-xs">
             <span className="text-gray-500">Your Quote:</span>
