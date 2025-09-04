@@ -9,9 +9,10 @@ interface AddressSelectorProps {
   selectedAddress: SavedAddress | null
   onAddressSelect: (address: SavedAddress | null) => void
   onNewAddress: () => void
+  onClearAddress?: () => void
 }
 
-export function AddressSelector({ selectedAddress, onAddressSelect, onNewAddress }: AddressSelectorProps) {
+export function AddressSelector({ selectedAddress, onAddressSelect, onNewAddress, onClearAddress }: AddressSelectorProps) {
   const [addresses, setAddresses] = useState<SavedAddress[]>([])
   const [loading, setLoading] = useState(true)
   const [showDropdown, setShowDropdown] = useState(false)
@@ -61,10 +62,6 @@ export function AddressSelector({ selectedAddress, onAddressSelect, onNewAddress
 
   return (
     <div className="space-y-3">
-      <label className="block text-sm font-medium text-gray-700">
-        Delivery Address
-      </label>
-      
       {/* Selected Address Display */}
       {selectedAddress ? (
         <div className="border border-primary-500 bg-primary-50 rounded-lg p-4">
@@ -87,12 +84,25 @@ export function AddressSelector({ selectedAddress, onAddressSelect, onNewAddress
                 )}
               </div>
             </div>
-            <button
-              onClick={() => setShowDropdown(!showDropdown)}
-              className="text-primary-600 hover:text-primary-800 text-sm font-medium"
-            >
-              Change
-            </button>
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setShowDropdown(!showDropdown)}
+                className="text-primary-600 hover:text-primary-800 text-sm font-medium"
+              >
+                Change
+              </button>
+              {onClearAddress && (
+                <button
+                  onClick={() => {
+                    onClearAddress()
+                    setShowDropdown(false)
+                  }}
+                  className="text-gray-500 hover:text-gray-700 text-sm font-medium"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
         </div>
       ) : (

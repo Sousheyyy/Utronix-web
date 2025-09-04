@@ -51,6 +51,15 @@ export function CreateOrderForm({ onSubmit, onCancel }: CreateOrderFormProps) {
     }
   }
 
+  const handleClearAddress = () => {
+    setSelectedAddress(null)
+    setFormData(prev => ({
+      ...prev,
+      delivery_address: '',
+      phone_number: ''
+    }))
+  }
+
   const handleNewAddress = () => {
     setAddressFormData({ name: '', address: '', phone: '', is_default: false })
     setShowAddressForm(true)
@@ -216,31 +225,61 @@ export function CreateOrderForm({ onSubmit, onCancel }: CreateOrderFormProps) {
         </div>
       </div>
 
-      <AddressSelector
-        selectedAddress={selectedAddress}
-        onAddressSelect={handleAddressSelect}
-        onNewAddress={handleNewAddress}
-      />
-
       <div>
-        <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700">
-          Phone Number *
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Choose from saved addresses (optional)
         </label>
-        <div className="mt-1">
-          <input
-            id="phone_number"
-            name="phone_number"
-            type="tel"
-            required
-            value={formData.phone_number}
-            onChange={handleChange}
-            className="input-field"
-            placeholder="Enter your phone number"
-          />
+        <AddressSelector
+          selectedAddress={selectedAddress}
+          onAddressSelect={handleAddressSelect}
+          onNewAddress={handleNewAddress}
+          onClearAddress={handleClearAddress}
+        />
+      </div>
+      
+      <div className="border-t pt-4">
+        <h4 className="text-sm font-medium text-gray-700 mb-3">Or enter manually:</h4>
+        
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="delivery_address" className="block text-sm font-medium text-gray-700">
+              Delivery Address *
+            </label>
+            <div className="mt-1">
+              <textarea
+                id="delivery_address"
+                name="delivery_address"
+                rows={3}
+                required
+                value={formData.delivery_address}
+                onChange={handleChange}
+                className="input-field"
+                placeholder="Enter full delivery address"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700">
+              Phone Number *
+            </label>
+            <div className="mt-1">
+              <input
+                id="phone_number"
+                name="phone_number"
+                type="tel"
+                required
+                value={formData.phone_number}
+                onChange={handleChange}
+                className="input-field"
+                placeholder="Enter your phone number"
+              />
+            </div>
+            <p className="mt-1 text-sm text-gray-500">
+              Include country code (e.g., +1 555 123 4567)
+            </p>
+          </div>
         </div>
-        <p className="mt-1 text-sm text-gray-500">
-          Include country code (e.g., +1 555 123 4567)
-        </p>
       </div>
 
       <div>
