@@ -3,13 +3,14 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
-import { Order, CreateOrderRequest, OrderStatus } from '@/types'
+import { Order, CreateOrderRequest, OrderStatus, SavedAddress } from '@/types'
 import { CreateOrderForm } from '../orders/CreateOrderForm'
 import { OrderList } from '../orders/OrderList'
 import { OrderStepsInfo } from '../orders/OrderStepsInfo'
 import { FileUpload } from '../orders/FileUpload'
 import { FileUploadService } from '@/lib/fileUploadService'
-import { LogOut, Plus, Package, Settings, ShoppingCart, Clock, Edit, X, Trash2 } from 'lucide-react'
+import { SavedAddresses } from '../addresses/SavedAddresses'
+import { LogOut, Plus, Package, Settings, ShoppingCart, Clock, Edit, X, Trash2, MapPin } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 export function CustomerDashboard() {
@@ -31,6 +32,7 @@ export function CustomerDashboard() {
   const [cancelModalOpen, setCancelModalOpen] = useState(false)
   const [orderToCancel, setOrderToCancel] = useState<Order | null>(null)
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all')
+  const [activeTab, setActiveTab] = useState<'orders' | 'addresses'>('orders')
 
   // Filter orders based on selected status
   const filteredOrders = statusFilter === 'all' 
@@ -512,9 +514,38 @@ export function CustomerDashboard() {
         {/* Main Content Area */}
         <div className="bg-white shadow rounded-lg">
           <div className="px-4 py-5 sm:p-6">
+            {/* Tab Navigation */}
+            <div className="border-b border-gray-200 mb-6">
+              <nav className="-mb-px flex space-x-8">
+                <button
+                  onClick={() => setActiveTab('orders')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'orders'
+                      ? 'border-primary-500 text-primary-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <Package className="h-4 w-4 inline mr-2" />
+                  My Orders
+                </button>
+                <button
+                  onClick={() => setActiveTab('addresses')}
+                  className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                    activeTab === 'addresses'
+                      ? 'border-primary-500 text-primary-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <MapPin className="h-4 w-4 inline mr-2" />
+                  My Addresses
+                </button>
+              </nav>
+            </div>
 
-
-                         {/* Orders Section */}
+            {/* Tab Content */}
+            {activeTab === 'orders' ? (
+              <>
+                {/* Orders Section */}
              <div>
                <div className="flex items-center justify-between mb-4">
                  <button
@@ -574,6 +605,11 @@ export function CustomerDashboard() {
                  onCancelOrder={handleCancelOrder}
                />
              </div>
+              </>
+            ) : (
+              /* Addresses Section */
+              <SavedAddresses />
+            )}
           </div>
         </div>
       </main>

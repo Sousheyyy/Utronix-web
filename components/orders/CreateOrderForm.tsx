@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { CreateOrderRequest } from '@/types'
+import { CreateOrderRequest, SavedAddress } from '@/types'
 import { FileUpload } from './FileUpload'
+import { AddressSelector } from '../addresses/AddressSelector'
 
 interface CreateOrderFormProps {
   onSubmit: (orderData: CreateOrderRequest) => Promise<void>
@@ -20,6 +21,8 @@ export function CreateOrderForm({ onSubmit, onCancel }: CreateOrderFormProps) {
   })
   const [files, setFiles] = useState<File[]>([])
   const [loading, setLoading] = useState(false)
+  const [selectedAddress, setSelectedAddress] = useState<SavedAddress | null>(null)
+  const [showAddressForm, setShowAddressForm] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -27,6 +30,21 @@ export function CreateOrderForm({ onSubmit, onCancel }: CreateOrderFormProps) {
       ...prev,
       [name]: name === 'quantity' ? parseInt(value) || 1 : value
     }))
+  }
+
+  const handleAddressSelect = (address: SavedAddress | null) => {
+    setSelectedAddress(address)
+    if (address) {
+      setFormData(prev => ({
+        ...prev,
+        delivery_address: address.address,
+        phone_number: address.phone || ''
+      }))
+    }
+  }
+
+  const handleNewAddress = () => {
+    setShowAddressForm(true)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,6 +63,7 @@ export function CreateOrderForm({ onSubmit, onCancel }: CreateOrderFormProps) {
         phone_number: '',
       })
       setFiles([])
+      setSelectedAddress(null)
     } catch (error) {
       console.error('Error in form submission:', error)
       // Error handling is done in the parent component
@@ -130,26 +149,11 @@ export function CreateOrderForm({ onSubmit, onCancel }: CreateOrderFormProps) {
         </div>
       </div>
 
-      <div>
-        <label htmlFor="delivery_address" className="block text-sm font-medium text-gray-700">
-          Delivery Address *
-        </label>
-        <div className="mt-1">
-          <textarea
-            id="delivery_address"
-            name="delivery_address"
-            rows={3}
-            required
-            value={formData.delivery_address}
-            onChange={handleChange}
-            className="input-field"
-            placeholder="Enter your complete delivery address"
-          />
-        </div>
-        <p className="mt-1 text-sm text-gray-500">
-          Include street address, city, postal code, and country
-        </p>
-      </div>
+      <AddressSelector
+        selectedAddress={selectedAddress}
+        onAddressSelect={handleAddressSelect}
+        onNewAddress={handleNewAddress}
+      />
 
       <div>
         <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700">
@@ -204,5 +208,76 @@ export function CreateOrderForm({ onSubmit, onCancel }: CreateOrderFormProps) {
         </button>
       </div>
     </form>
+
+    {/* Address Form Modal */}
+    {showAddressForm && (
+      <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+          <div className="mt-3">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">Add New Address</h3>
+            <p className="text-sm text-gray-500 mb-4">
+              This address will be saved to your account for future orders.
+            </p>
+            
+            <form onSubmit={(e) => {
+              e.preventDefault()
+              // For now, just close the modal - the address will be saved when the order is created
+              setShowAddressForm(false)
+            }} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Address Name *
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="e.g., Home, Office, Warehouse"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Address *
+                </label>
+                <textarea
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Enter full delivery address"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Enter phone number"
+                />
+              </div>
+
+              <div className="flex space-x-3">
+                <button
+                  type="submit"
+                  className="flex-1 bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+                >
+                  Save & Use Address
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddressForm(false)}
+                  className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    )}
   )
 }

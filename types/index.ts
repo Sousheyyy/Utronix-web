@@ -123,3 +123,14 @@ export interface PaymentConfirmationRequest {
   transaction_id: string
   amount: number
 }
+
+export interface SavedAddress {
+  id: string
+  customer_id: string
+  name: string
+  address: string
+  phone?: string
+  is_default: boolean
+  created_at: string
+  updated_at: string
+}
