@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
-import { Order, CreateQuoteRequest } from '@/types'
+import { Order, CreateQuoteRequest, OrderStatus } from '@/types'
 import { CreateQuoteForm } from '../quotes/CreateQuoteForm'
 import { OrderFiles } from '../orders/OrderFiles'
 import { LogOut, Package, DollarSign, Upload, CheckCircle, Image as ImageIcon, X } from 'lucide-react'
@@ -21,6 +21,12 @@ export function SupplierDashboard() {
   const [showOrderDetails, setShowOrderDetails] = useState(false)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all')
+
+  // Filter orders based on selected status
+  const filteredOrders = statusFilter === 'all' 
+    ? orders 
+    : orders.filter(order => order.status === statusFilter)
 
   useEffect(() => {
     fetchOrders()
@@ -609,6 +615,31 @@ export function SupplierDashboard() {
             <p className="text-sm text-gray-600 mb-6">
               Manage your orders and quotes. Click on any row to view details and take actions.
             </p>
+            
+            {/* Status Filter */}
+            <div className="flex items-center space-x-4 mb-4">
+              <label htmlFor="status-filter" className="text-sm font-medium text-gray-700">
+                Filter by status:
+              </label>
+              <select
+                id="status-filter"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as OrderStatus | 'all')}
+                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 text-sm"
+              >
+                <option value="all">All Orders</option>
+                <option value="request_created">Request Created</option>
+                <option value="price_quoted">Price Quoted</option>
+                <option value="payment_confirmed">Payment Confirmed</option>
+                <option value="production_started">In Depo</option>
+                <option value="in_transit">In Transit</option>
+                <option value="delivered">Delivered</option>
+                <option value="canceled">Canceled</option>
+              </select>
+              <span className="text-sm text-gray-500">
+                Showing {filteredOrders.length} of {orders.length} orders
+              </span>
+            </div>
           </div>
 
           {/* Orders Table */}
@@ -640,7 +671,7 @@ export function SupplierDashboard() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {orders.map((order) => {
+                {filteredOrders.map((order) => {
                   const currentSupplierQuote = order.supplier_quotes?.find(quote => quote.supplier_id === profile?.id)
                   
                   return (
@@ -685,11 +716,18 @@ export function SupplierDashboard() {
               </tbody>
             </table>
             
-            {orders.length === 0 && (
+            {filteredOrders.length === 0 && (
               <div className="text-center py-12">
                 <Package className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No orders</h3>
-                <p className="mt-1 text-sm text-gray-500">You don't have any orders assigned to you yet.</p>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                  {statusFilter === 'all' ? 'No orders' : `No ${statusFilter.replace('_', ' ')} orders`}
+                </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  {statusFilter === 'all' 
+                    ? 'You don\'t have any orders assigned to you yet.' 
+                    : `No orders with status "${statusFilter.replace('_', ' ')}" found.`
+                  }
+                </p>
               </div>
             )}
           </div>
