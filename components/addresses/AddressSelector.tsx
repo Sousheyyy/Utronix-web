@@ -95,6 +95,7 @@ export function AddressSelector({ selectedAddress, onAddressSelect, onNewAddress
             </div>
             <div className="flex space-x-2">
               <button
+                type="button"
                 onClick={() => setShowDropdown(!showDropdown)}
                 className="text-primary-600 hover:text-primary-800 text-sm font-medium"
               >
@@ -102,6 +103,7 @@ export function AddressSelector({ selectedAddress, onAddressSelect, onNewAddress
               </button>
               {onClearAddress && (
                 <button
+                  type="button"
                   onClick={() => {
                     onClearAddress()
                     setShowDropdown(false)
@@ -116,6 +118,7 @@ export function AddressSelector({ selectedAddress, onAddressSelect, onNewAddress
         </div>
       ) : (
         <button
+          type="button"
           onClick={() => setShowDropdown(!showDropdown)}
           className="w-full border-2 border-dashed border-gray-300 rounded-lg p-4 text-left hover:border-primary-500 hover:bg-primary-50 transition-colors"
         >
@@ -134,6 +137,7 @@ export function AddressSelector({ selectedAddress, onAddressSelect, onNewAddress
               {addresses.map((address) => (
                 <button
                   key={address.id}
+                  type="button"
                   onClick={() => handleAddressSelect(address)}
                   className={`w-full p-4 text-left hover:bg-gray-50 transition-colors ${
                     selectedAddress?.id === address.id ? 'bg-primary-50' : ''
@@ -174,6 +178,7 @@ export function AddressSelector({ selectedAddress, onAddressSelect, onNewAddress
           
           <div className="border-t border-gray-200">
             <button
+              type="button"
               onClick={handleNewAddress}
               className="w-full p-4 text-left hover:bg-gray-50 transition-colors flex items-center"
             >
