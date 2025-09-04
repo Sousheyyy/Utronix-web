@@ -76,29 +76,50 @@ export function CreateOrderForm({ onSubmit, onCancel }: CreateOrderFormProps) {
   const handleSaveAddress = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    console.log('=== SAVING ADDRESS DEBUG ===')
+    console.log('Form data:', addressFormData)
+    
     if (!addressFormData.name.trim() || !addressFormData.address.trim()) {
       toast.error('Please fill in name and address')
       return
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      console.log('Getting user...')
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
+      
+      if (userError) {
+        console.error('User error:', userError)
+        toast.error(`Authentication error: ${userError.message}`)
+        return
+      }
+      
       if (!user) {
+        console.error('No user found')
         toast.error('You must be logged in to save addresses')
         return
       }
 
+      console.log('User ID:', user.id)
+      console.log('Attempting to insert address...')
+
+      const insertData = {
+        customer_id: user.id,
+        name: addressFormData.name,
+        address: addressFormData.address,
+        phone: addressFormData.phone || null,
+        is_default: addressFormData.is_default
+      }
+      
+      console.log('Insert data:', insertData)
+
       const { data, error } = await supabase
         .from('saved_addresses')
-        .insert([{
-          customer_id: user.id,
-          name: addressFormData.name,
-          address: addressFormData.address,
-          phone: addressFormData.phone || null,
-          is_default: addressFormData.is_default
-        }])
+        .insert([insertData])
         .select()
         .single()
+
+      console.log('Insert result:', { data, error })
 
       if (error) {
         console.error('Error saving address:', error)
@@ -111,6 +132,8 @@ export function CreateOrderForm({ onSubmit, onCancel }: CreateOrderFormProps) {
         toast.error(`Failed to save address: ${error.message}`)
         return
       }
+
+      console.log('Address saved successfully:', data)
 
       // Use the saved address
       setSelectedAddress(data)
