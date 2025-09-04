@@ -628,7 +628,6 @@ export function SupplierDashboard() {
                 className="px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 text-sm"
               >
                 <option value="all">All Orders</option>
-                <option value="request_created">Request Created</option>
                 <option value="price_quoted">Price Quoted</option>
                 <option value="payment_confirmed">Payment Confirmed</option>
                 <option value="production_started">In Depo</option>
