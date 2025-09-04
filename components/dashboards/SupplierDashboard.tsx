@@ -879,7 +879,7 @@ export function SupplierDashboard() {
                           {formatOrderNumber(order.order_number)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {formatOrderTitle(order.title)}
+                          {formatOrderTitle(order.order_number, order.title)}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
                           {order.description}
