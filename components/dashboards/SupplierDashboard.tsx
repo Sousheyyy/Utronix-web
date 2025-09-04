@@ -31,6 +31,7 @@ export function SupplierDashboard() {
     payment_confirmed: false,
     production_started: false,
     in_transit: false,
+    delivered: false,
     canceled: false
   })
 
@@ -42,6 +43,7 @@ export function SupplierDashboard() {
     payment_confirmed: orders.filter(order => order.status === 'payment_confirmed'),
     production_started: orders.filter(order => order.status === 'production_started'),
     in_transit: orders.filter(order => order.status === 'in_transit'),
+    delivered: orders.filter(order => order.status === 'delivered'),
     canceled: orders.filter(order => order.status === 'canceled')
   }
 
@@ -692,6 +694,7 @@ export function SupplierDashboard() {
       'payment_confirmed': 'bg-green-50',
       'production_started': 'bg-purple-50',
       'in_transit': 'bg-indigo-50',
+      'delivered': 'bg-green-50',
       'canceled': 'bg-red-50'
     }
     return colors[status as keyof typeof colors] || 'bg-gray-50'
@@ -704,6 +707,7 @@ export function SupplierDashboard() {
       'payment_confirmed': 'bg-white',
       'production_started': 'bg-white',
       'in_transit': 'bg-white',
+      'delivered': 'bg-white',
       'canceled': 'bg-white'
     }
     return colors[status as keyof typeof colors] || 'bg-white'
@@ -763,7 +767,7 @@ export function SupplierDashboard() {
       {/* Status Overview Bar */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
             {/* New Requests */}
             <div className="bg-blue-50 rounded-lg p-4 text-center">
               <div className="text-2xl font-bold text-blue-600">{statusCounts.request_created}</div>
@@ -794,6 +798,12 @@ export function SupplierDashboard() {
               <div className="text-sm text-indigo-600">In Transit</div>
             </div>
 
+            {/* Delivered */}
+            <div className="bg-green-50 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-green-600">{statusCounts.delivered}</div>
+              <div className="text-sm text-green-600">Delivered</div>
+            </div>
+
             {/* Canceled */}
             <div className="bg-red-50 rounded-lg p-4 text-center">
               <div className="text-2xl font-bold text-red-600">{statusCounts.canceled}</div>
@@ -813,8 +823,6 @@ export function SupplierDashboard() {
 
           {/* Separate Tables for Each Status */}
           {Object.entries(ordersByStatus).map(([status, statusOrders]) => {
-            if (statusOrders.length === 0) return null
-
             const isCollapsed = collapsedTables[status]
             const headerColor = getTableHeaderColor(status)
             const bodyColor = getTableBodyColor(status)
@@ -878,44 +886,56 @@ export function SupplierDashboard() {
                         </tr>
                       </thead>
                       <tbody className={`${bodyColor} divide-y divide-gray-200`}>
-                        {statusOrders.map((order) => {
-                          const currentSupplierQuote = order.supplier_quotes?.find(quote => quote.supplier_id === profile?.id)
-                          
-                          return (
-                            <tr 
-                              key={order.id}
-                              onClick={() => handleViewOrderDetails(order)}
-                              className="hover:bg-gray-50 cursor-pointer transition-colors"
-                            >
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {formatOrderNumber(order.order_number)}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {formatOrderTitle(order.order_number, order.title)}
-                              </td>
-                              <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                                {order.description}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {order.quantity}
-                              </td>
-                              {status !== 'request_created' && (
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                  {currentSupplierQuote?.price ? `$${currentSupplierQuote.price.toFixed(2)}` : '-'}
+                        {statusOrders.length > 0 ? (
+                          statusOrders.map((order) => {
+                            const currentSupplierQuote = order.supplier_quotes?.find(quote => quote.supplier_id === profile?.id)
+                            
+                            return (
+                              <tr 
+                                key={order.id}
+                                onClick={() => handleViewOrderDetails(order)}
+                                className="hover:bg-gray-50 cursor-pointer transition-colors"
+                              >
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                  {formatOrderNumber(order.order_number)}
                                 </td>
-                              )}
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {order.updated_at ? new Date(order.updated_at).toLocaleString('en-US', {
-                                  year: 'numeric',
-                                  month: '2-digit',
-                                  day: '2-digit',
-                                  hour: '2-digit',
-                                  minute: '2-digit'
-                                }) : '-'}
-                              </td>
-                            </tr>
-                          )
-                        })}
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                  {formatOrderTitle(order.order_number, order.title)}
+                                </td>
+                                <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                                  {order.description}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {order.quantity}
+                                </td>
+                                {status !== 'request_created' && (
+                                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {currentSupplierQuote?.price ? `$${currentSupplierQuote.price.toFixed(2)}` : '-'}
+                                  </td>
+                                )}
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {order.updated_at ? new Date(order.updated_at).toLocaleString('en-US', {
+                                    year: 'numeric',
+                                    month: '2-digit',
+                                    day: '2-digit',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  }) : '-'}
+                                </td>
+                              </tr>
+                            )
+                          })
+                        ) : (
+                          <tr>
+                            <td 
+                              colSpan={status !== 'request_created' ? 6 : 5} 
+                              className="px-6 py-12 text-center text-sm text-gray-500"
+                            >
+                              <Package className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                              <div>No {statusLabel.toLowerCase()} orders</div>
+                            </td>
+                          </tr>
+                        )}
                       </tbody>
                     </table>
                   </div>
