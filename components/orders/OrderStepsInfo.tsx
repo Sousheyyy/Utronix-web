@@ -19,7 +19,7 @@ export function OrderStepsInfo() {
         <Package className="h-4 w-4 mr-2" />
         Order Process Steps
       </h3>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+      <div className="grid grid-cols-7 gap-1">
         {orderSteps.map((step, index) => {
           const Icon = step.icon || Package // Fallback to Package icon
           return (
