@@ -17,9 +17,6 @@ export function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'orders' | 'customers' | 'analyze'>('orders')
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [sortBy, setSortBy] = useState<'order_number' | 'supplier_price' | 'updated_at'>('updated_at')
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [detailsModalOpen, setDetailsModalOpen] = useState(false)
   const [detailsEditMode, setDetailsEditMode] = useState(false)
@@ -44,6 +41,16 @@ export function AdminDashboard() {
   const [lastRefreshTime, setLastRefreshTime] = useState<Date>(new Date())
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [newOrderCount, setNewOrderCount] = useState(0)
+  const [collapsedTables, setCollapsedTables] = useState<Record<string, boolean>>({
+    admin_review: false,
+    request_created: false,
+    price_quoted: false,
+    payment_confirmed: false,
+    production_started: false,
+    in_transit: false,
+    delivered: false,
+    canceled: false
+  })
 
   useEffect(() => {
     fetchData()
@@ -537,9 +544,6 @@ export function AdminDashboard() {
     return orders.filter(order => order.status === 'price_quoted').length
   }
 
-  const toggleSortDirection = () => {
-    setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')
-  }
 
   const generateTimelineEvents = (order: Order) => {
     const events = []
@@ -716,34 +720,40 @@ export function AdminDashboard() {
     })
   }
 
-  const filteredOrders = orders
-    .filter(order => {
+  // Group orders by status for separate tables
+  const ordersByStatus = {
+    admin_review: orders.filter(order => order.status === 'admin_review'),
+    request_created: orders.filter(order => order.status === 'request_created'),
+    price_quoted: orders.filter(order => order.status === 'price_quoted'),
+    payment_confirmed: orders.filter(order => order.status === 'payment_confirmed'),
+    production_started: orders.filter(order => order.status === 'production_started'),
+    in_transit: orders.filter(order => order.status === 'in_transit'),
+    delivered: orders.filter(order => order.status === 'delivered'),
+    canceled: orders.filter(order => order.status === 'canceled')
+  }
+
+  // Toggle table collapse state
+  const toggleTableCollapse = (status: string) => {
+    setCollapsedTables(prev => ({
+      ...prev,
+      [status]: !prev[status]
+    }))
+  }
+
+  // Filter orders by search term (including order number)
+  const getFilteredOrdersByStatus = (statusOrders: Order[]) => {
+    return statusOrders.filter(order => {
       const matchesSearch = order.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            order.customer?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            matchesOrderNumber(searchTerm, order.order_number)
-      const matchesStatus = statusFilter === 'all' || order.status === statusFilter
-      return matchesSearch && matchesStatus
+      return matchesSearch
     })
-    .sort((a, b) => {
-      let result = 0
-      switch (sortBy) {
-        case 'order_number':
-          result = (a.order_number || 0) - (b.order_number || 0)
-          break
-        case 'supplier_price':
-          result = (a.supplier_price || 0) - (b.supplier_price || 0)
-          break
-        case 'updated_at':
-        default:
-          result = new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime()
-          break
-      }
-      return sortDirection === 'desc' ? -result : result
-    })
+  }
 
   const getStatusColor = (status: string) => {
     const colors = {
+      'admin_review': 'bg-orange-100 text-orange-800',
       'request_created': 'bg-blue-100 text-blue-800',
       'price_quoted': 'bg-yellow-100 text-yellow-800',
       'payment_confirmed': 'bg-green-100 text-green-800',
@@ -755,8 +765,23 @@ export function AdminDashboard() {
     return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800'
   }
 
+  const getTableHeaderColor = (status: string) => {
+    const colors = {
+      'admin_review': 'bg-orange-50',
+      'request_created': 'bg-blue-50',
+      'price_quoted': 'bg-yellow-50',
+      'payment_confirmed': 'bg-green-50',
+      'production_started': 'bg-purple-50',
+      'in_transit': 'bg-indigo-50',
+      'delivered': 'bg-gray-50',
+      'canceled': 'bg-red-50'
+    }
+    return colors[status as keyof typeof colors] || 'bg-gray-50'
+  }
+
   const getStatusLabel = (status: string) => {
     const labels = {
+      'admin_review': 'UNDER REVIEW',
       'request_created': 'ORDER RECEIVED',
       'price_quoted': 'PRICE QUOTED',
       'payment_confirmed': 'PAYMENT RECEIVED',
@@ -954,7 +979,7 @@ export function AdminDashboard() {
                       <div className="relative">
                         <input
                           type="text"
-                          placeholder="Search product, customer"
+                          placeholder="Search product, customer, order number"
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                           className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
@@ -965,127 +990,136 @@ export function AdminDashboard() {
                           </svg>
                         </div>
                       </div>
-                      <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
-                      >
-                        <option value="all">All Statuses</option>
-                        <option value="request_created">Order Received</option>
-                        <option value="price_quoted">Price Quoted</option>
-
-                        <option value="payment_confirmed">Payment Received</option>
-                        <option value="production_started">In Production</option>
-                        <option value="in_transit">In Shipping</option>
-                        <option value="delivered">Delivered</option>
-                        <option value="canceled">Canceled</option>
-                      </select>
-                      <div className="flex items-center space-x-2">
-                        <select
-                          value={sortBy}
-                          onChange={(e) => setSortBy(e.target.value as 'order_number' | 'supplier_price' | 'updated_at')}
-                          className="px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
-                        >
-                          <option value="updated_at">Sort by Updated</option>
-                          <option value="order_number">Sort by Order No</option>
-                          <option value="supplier_price">Sort by Supplier Price</option>
-                        </select>
-                        <button
-                          onClick={toggleSortDirection}
-                          className="p-2 border border-gray-300 rounded-md hover:bg-gray-50 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                          title={`Sort ${sortDirection === 'asc' ? 'Ascending' : 'Descending'}`}
-                        >
-                          {sortDirection === 'asc' ? (
-                            <ArrowUp className="h-4 w-4 text-gray-600" />
-                          ) : (
-                            <ArrowDown className="h-4 w-4 text-gray-600" />
-                          )}
-                        </button>
-                      </div>
                     </div>
 
                   </div>
 
                   {/* Orders Table */}
-                  <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-                    <table className="w-full divide-y divide-gray-300">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
-                            #Order
-                          </th>
-                          <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
-                            Product Name
-                          </th>
-                          <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
-                            Description
-                          </th>
-                          <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
-                            Supplier Price
-                          </th>
-                          <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
-                            Quantity
-                          </th>
-                          <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
-                            Customer Price
-                          </th>
-                          <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
-                            Profit
-                          </th>
-                          <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
-                            Status
-                          </th>
-                          <th className="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
-                            Customer
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {filteredOrders.map((order) => (
-                          <tr 
-                            key={order.id}
-                            onClick={() => handleViewOrderDetails(order)}
-                            className="cursor-pointer hover:bg-gray-50 transition-colors"
-                          >
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                              {formatOrderNumber(order.order_number)}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                              {order.title}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-500 max-w-lg">
-                              <div className="whitespace-normal break-words">
-                                {order.description}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              ${order.supplier_price?.toFixed(2) || '-'}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {order.quantity}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              ${order.final_price?.toFixed(2) || '-'}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">
-                              {order.final_price && order.supplier_price ? 
-                                `+$${(order.final_price - order.supplier_price).toFixed(2)}` : 
-                                '-'
-                              }
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                                {getStatusLabel(order.status)}
+                  {/* Separate Tables for Each Status */}
+                  {Object.entries(ordersByStatus).map(([status, statusOrders]) => {
+                    const isCollapsed = collapsedTables[status]
+                    const headerColor = getTableHeaderColor(status)
+                    const statusLabel = getStatusLabel(status)
+                    const filteredStatusOrders = getFilteredOrdersByStatus(statusOrders)
+
+                    return (
+                      <div key={status} className="mb-6">
+                        {/* Table Header with Collapse Toggle */}
+                        <div 
+                          className={`${headerColor} rounded-t-lg border border-gray-200 cursor-pointer hover:opacity-90 transition-opacity`}
+                          onClick={() => toggleTableCollapse(status)}
+                        >
+                          <div className="px-6 py-4 flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <h3 className="text-lg font-medium text-gray-900">
+                                {statusLabel} ({filteredStatusOrders.length})
+                              </h3>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(status)}`}>
+                                {statusLabel}
                               </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {order.customer?.full_name}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                              <svg
+                                className={`w-5 h-5 text-gray-500 transform transition-transform ${isCollapsed ? 'rotate-180' : ''}`}
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Collapsible Table Content */}
+                        {!isCollapsed && (
+                          <div className="overflow-x-auto border-l border-r border-b border-gray-200 rounded-b-lg">
+                            <table className="min-w-full divide-y divide-gray-200">
+                              <thead className={headerColor}>
+                                <tr>
+                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
+                                    #Order
+                                  </th>
+                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Product Name
+                                  </th>
+                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Description
+                                  </th>
+                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Supplier Price
+                                  </th>
+                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Quantity
+                                  </th>
+                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Customer Price
+                                  </th>
+                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Profit
+                                  </th>
+                                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Customer
+                                  </th>
+                                </tr>
+                              </thead>
+                              <tbody className="bg-white divide-y divide-gray-200">
+                                {filteredStatusOrders.length > 0 ? (
+                                  filteredStatusOrders.map((order) => (
+                                    <tr 
+                                      key={order.id}
+                                      onClick={() => handleViewOrderDetails(order)}
+                                      className="cursor-pointer hover:bg-gray-50 transition-colors"
+                                    >
+                                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                        {formatOrderNumber(order.order_number)}
+                                      </td>
+                                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {order.title}
+                                      </td>
+                                      <td className="px-6 py-4 text-sm text-gray-500 max-w-lg">
+                                        <div className="whitespace-normal break-words">
+                                          {order.description}
+                                        </div>
+                                      </td>
+                                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        ${order.supplier_price?.toFixed(2) || '-'}
+                                      </td>
+                                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {order.quantity}
+                                      </td>
+                                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        ${order.final_price?.toFixed(2) || '-'}
+                                      </td>
+                                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-medium">
+                                        {order.final_price && order.supplier_price ? 
+                                          `+$${(order.final_price - order.supplier_price).toFixed(2)}` : 
+                                          '-'
+                                        }
+                                      </td>
+                                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        {order.customer?.full_name}
+                                      </td>
+                                    </tr>
+                                  ))
+                                ) : (
+                                  <tr>
+                                    <td 
+                                      colSpan={8} 
+                                      className="px-6 py-12 text-center text-sm text-gray-500"
+                                    >
+                                      <Package className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                                      <div>No {statusLabel.toLowerCase()} orders</div>
+                                    </td>
+                                  </tr>
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               )}
               {activeTab === 'customers' && (
