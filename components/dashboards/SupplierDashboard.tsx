@@ -625,13 +625,7 @@ export function SupplierDashboard() {
       {/* Status Overview Bar */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-            {/* Total Orders */}
-            <div className="bg-gray-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-gray-900">{statusCounts.total}</div>
-              <div className="text-sm text-gray-600">Total Orders</div>
-            </div>
-
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {/* New Requests */}
             <div className="bg-blue-50 rounded-lg p-4 text-center">
               <div className="text-2xl font-bold text-blue-600">{statusCounts.request_created}</div>
@@ -660,12 +654,6 @@ export function SupplierDashboard() {
             <div className="bg-indigo-50 rounded-lg p-4 text-center">
               <div className="text-2xl font-bold text-indigo-600">{statusCounts.in_transit}</div>
               <div className="text-sm text-indigo-600">In Transit</div>
-            </div>
-
-            {/* Delivered */}
-            <div className="bg-emerald-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-emerald-600">{statusCounts.delivered}</div>
-              <div className="text-sm text-emerald-600">Delivered</div>
             </div>
 
             {/* Canceled */}
