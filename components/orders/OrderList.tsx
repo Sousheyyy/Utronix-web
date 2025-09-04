@@ -67,7 +67,7 @@ export const OrderList = React.memo(function OrderList({ orders, userRole, onOrd
       ))}
     </div>
   )
-}
+})
 
 function OrderCard({ order, userRole, onOrderSelect, onEditOrder, onCancelOrder }: OrderCardProps) {
   const status = statusConfig[order.status] || { label: order.status, icon: Package, color: 'text-gray-600 bg-gray-100' }
