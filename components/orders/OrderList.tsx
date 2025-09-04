@@ -33,7 +33,7 @@ const statusConfig = {
   production_started: { label: 'Production Started', icon: Package, color: 'text-purple-600 bg-purple-100' },
   in_transit: { label: 'In Transit', icon: Truck, color: 'text-indigo-600 bg-indigo-100' },
   in_customs: { label: 'In Customs', icon: Globe, color: 'text-red-600 bg-red-100' },
-  delivered: { label: 'Delivered', icon: Home, color: 'text-green-600 bg-green-100' },
+  delivered: { label: 'Delivered', icon: Home, color: 'text-gray-600 bg-gray-100' },
   canceled: { label: 'Canceled', icon: Trash2, color: 'text-red-600 bg-red-100' },
 }
 
