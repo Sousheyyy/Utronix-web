@@ -1,6 +1,7 @@
 export type UserRole = 'customer' | 'supplier' | 'admin'
 
 export type OrderStatus = 
+  | 'admin_review'
   | 'request_created'
   | 'price_quoted'
   | 'payment_confirmed'

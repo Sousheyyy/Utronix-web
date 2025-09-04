@@ -38,6 +38,7 @@ export function SupplierDashboard() {
   // Count orders by status
   const statusCounts = {
     total: orders.length,
+    admin_review: orders.filter(order => order.status === 'admin_review').length,
     request_created: orders.filter(order => order.status === 'request_created').length,
     price_quoted: orders.filter(order => order.status === 'price_quoted').length,
     payment_confirmed: orders.filter(order => order.status === 'payment_confirmed').length,
@@ -661,6 +662,7 @@ export function SupplierDashboard() {
 
   const getContainerColor = (status: string) => {
     const colors = {
+      'admin_review': 'bg-orange-50 border-orange-200',
       'request_created': 'bg-blue-50 border-blue-200',
       'price_quoted': 'bg-yellow-50 border-yellow-200',
       'payment_confirmed': 'bg-green-50 border-green-200',
@@ -674,6 +676,7 @@ export function SupplierDashboard() {
 
   const getStatusLabel = (status: string) => {
     const labels = {
+      'admin_review': 'Under Review',
       'request_created': 'Requests',
       'price_quoted': 'Price Quoted',
       'payment_confirmed': 'Payment Confirmed',
@@ -687,6 +690,7 @@ export function SupplierDashboard() {
 
   const getStatusColor = (status: string) => {
     const colors = {
+      'admin_review': 'text-orange-600 bg-orange-100',
       'request_created': 'text-blue-600 bg-blue-100',
       'price_quoted': 'text-yellow-600 bg-yellow-100',
       'payment_confirmed': 'text-green-600 bg-green-100',
@@ -755,7 +759,13 @@ export function SupplierDashboard() {
       {/* Status Overview Bar */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
+            {/* Under Review */}
+            <div className="bg-orange-50 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-orange-600">{statusCounts.admin_review}</div>
+              <div className="text-sm text-orange-600">Under Review</div>
+            </div>
+
             {/* New Requests */}
             <div className="bg-blue-50 rounded-lg p-4 text-center">
               <div className="text-2xl font-bold text-blue-600">{statusCounts.request_created}</div>
@@ -813,6 +823,8 @@ export function SupplierDashboard() {
                 className="px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 text-sm"
               >
                 <option value="all">All Orders</option>
+                <option value="admin_review">Under Review</option>
+                <option value="request_created">Request Created</option>
                 <option value="price_quoted">Price Quoted</option>
                 <option value="payment_confirmed">Payment Confirmed</option>
                 <option value="production_started">In Depo</option>
