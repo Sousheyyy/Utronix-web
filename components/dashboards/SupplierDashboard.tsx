@@ -601,160 +601,98 @@ export function SupplierDashboard() {
         </div>
       </header>
 
-      {/* Main Content - Trello Style Board */}
+      {/* Main Content - Table Layout */}
       <main className="w-full mx-auto py-6 px-4">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="grid grid-cols-6 gap-4">
-          {/* Requests Container */}
-          <div className={`${getContainerColor('request_created')} rounded-lg border-2 p-4`}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-800">Requests</h3>
-              <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                {getStatusCount('request_created')}
-              </span>
-            </div>
-            <div className="space-y-3">
-              {getOrdersByStatus('request_created').map((order) => (
-                <OrderCard 
-                  key={order.id} 
-                  order={order} 
-                  onViewDetails={handleViewOrderDetails}
-                  currentSupplierId={profile?.id}
-                />
-              ))}
-              {getOrdersByStatus('request_created').length === 0 && (
-                <div className="text-gray-500 text-sm text-center py-8">
-                  No new requests
-                </div>
-              )}
-            </div>
+          <div className="mb-6">
+            <h2 className="text-lg font-medium text-gray-900 mb-4">Order Management</h2>
+            <p className="text-sm text-gray-600 mb-6">
+              Manage your orders and quotes. Click on any row to view details and take actions.
+            </p>
           </div>
 
-          {/* Price Quoted Container */}
-          <div className={`${getContainerColor('price_quoted')} rounded-lg border-2 p-4`}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-800">Price Quoted</h3>
-              <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                {getStatusCount('price_quoted')}
-              </span>
-            </div>
-            <div className="space-y-3">
-              {getOrdersByStatus('price_quoted').map((order) => (
-                <OrderCard 
-                  key={order.id} 
-                  order={order} 
-                  onViewDetails={handleViewOrderDetails}
-                  currentSupplierId={profile?.id}
-                />
-              ))}
-              {getOrdersByStatus('price_quoted').length === 0 && (
-                <div className="text-gray-500 text-sm text-center py-8">
-                  No quoted orders
-                </div>
-              )}
-            </div>
+          {/* Orders Table */}
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    #Order
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Product Name
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Description
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Quantity
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Given Price
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Updated
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {orders.map((order) => {
+                  const currentSupplierQuote = order.supplier_quotes?.find(quote => quote.supplier_id === profile?.id)
+                  
+                  return (
+                    <tr 
+                      key={order.id}
+                      onClick={() => handleViewOrderDetails(order)}
+                      className="hover:bg-gray-50 cursor-pointer transition-colors"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {formatOrderNumber(order.order_number)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {order.title}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                        {order.description}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {order.quantity}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {currentSupplierQuote ? `$${currentSupplierQuote.price.toFixed(2)}` : '-'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
+                          {getStatusLabel(order.status)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(order.updated_at).toLocaleString('en-US', {
+                          month: 'numeric',
+                          day: 'numeric',
+                          year: '2-digit',
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true
+                        })}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+            
+            {orders.length === 0 && (
+              <div className="text-center py-12">
+                <Package className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No orders</h3>
+                <p className="mt-1 text-sm text-gray-500">You don't have any orders assigned to you yet.</p>
+              </div>
+            )}
           </div>
-
-          {/* Payment Confirmed Container */}
-          <div className={`${getContainerColor('payment_confirmed')} rounded-lg border-2 p-4`}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-800">Payment Confirmed</h3>
-              <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                {getStatusCount('payment_confirmed')}
-              </span>
-            </div>
-            <div className="space-y-3">
-              {getOrdersByStatus('payment_confirmed').map((order) => (
-                <OrderCard 
-                  key={order.id} 
-                  order={order} 
-                  onViewDetails={handleViewOrderDetails}
-                  currentSupplierId={profile?.id}
-                />
-              ))}
-              {getOrdersByStatus('payment_confirmed').length === 0 && (
-                <div className="text-gray-500 text-sm text-center py-8">
-                  No confirmed payments
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* In Depo Container */}
-          <div className={`${getContainerColor('production_started')} rounded-lg border-2 p-4`}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-800">In Depo</h3>
-              <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                {getStatusCount('production_started')}
-              </span>
-            </div>
-            <div className="space-y-3">
-              {getOrdersByStatus('production_started').map((order) => (
-                <OrderCard 
-                  key={order.id} 
-                  order={order} 
-                  onViewDetails={handleViewOrderDetails}
-                  currentSupplierId={profile?.id}
-                />
-              ))}
-              {getOrdersByStatus('production_started').length === 0 && (
-                <div className="text-gray-500 text-sm text-center py-8">
-                  No orders in production
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* In Transit Container */}
-          <div className={`${getContainerColor('in_transit')} rounded-lg border-2 p-4`}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-800">In Transit</h3>
-              <span className="bg-indigo-100 text-indigo-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                {getStatusCount('in_transit')}
-              </span>
-            </div>
-            <div className="space-y-3">
-              {getOrdersByStatus('in_transit').map((order) => (
-                <OrderCard 
-                  key={order.id} 
-                  order={order} 
-                  onViewDetails={handleViewOrderDetails}
-                  currentSupplierId={profile?.id}
-                />
-              ))}
-              {getOrdersByStatus('in_transit').length === 0 && (
-                <div className="text-gray-500 text-sm text-center py-8">
-                  No orders in transit
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Canceled Container */}
-          <div className={`${getContainerColor('canceled')} rounded-lg border-2 p-4`}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-gray-800">Canceled</h3>
-              <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                {getStatusCount('canceled')}
-              </span>
-            </div>
-            <div className="space-y-3">
-              {getOrdersByStatus('canceled').map((order) => (
-                <OrderCard 
-                  key={order.id} 
-                  order={order} 
-                  onViewDetails={handleViewOrderDetails}
-                  currentSupplierId={profile?.id}
-                />
-              ))}
-              {getOrdersByStatus('canceled').length === 0 && (
-                <div className="text-gray-500 text-sm text-center py-8">
-                  No canceled orders
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
         </div>
       </main>
 
