@@ -22,6 +22,10 @@ export function SupplierDashboard() {
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all')
+  const [lastRefreshTime, setLastRefreshTime] = useState<Date>(new Date())
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [newOrderCount, setNewOrderCount] = useState(0)
+  const [previousOrderCount, setPreviousOrderCount] = useState(0)
 
   // Filter orders based on selected status (excluding request_created from main table)
   const filteredOrders = statusFilter === 'all' 
@@ -45,27 +49,111 @@ export function SupplierDashboard() {
 
   useEffect(() => {
     fetchOrders()
+    clearNewOrderCount() // Clear any existing new order count
 
     // Set up real-time subscription for order updates
     const channel = supabase
-      .channel('orders_changes')
+      .channel('supplier_orders_changes')
       .on('postgres_changes', 
         { 
           event: '*', 
           schema: 'public', 
-          table: 'orders' 
+          table: 'orders',
+          filter: `supplier_id=eq.${profile?.id}`
         }, 
-        () => {
-          // Refresh orders when any order changes
-          fetchOrders()
+        (payload) => {
+          console.log('Real-time order update:', payload)
+          handleOrderUpdate(payload)
         }
       )
-      .subscribe()
+      .on('postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'orders',
+          filter: `status=eq.request_created`
+        },
+        (payload) => {
+          console.log('New order request:', payload)
+          handleNewOrder(payload)
+        }
+      )
+      .subscribe((status) => {
+        console.log('Subscription status:', status)
+        if (status === 'SUBSCRIBED') {
+          console.log('Successfully subscribed to order updates')
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('Subscription error, falling back to periodic refresh')
+          startPeriodicRefresh()
+        }
+      })
+
+    // Periodic refresh fallback (every 30 seconds)
+    const refreshInterval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        refreshOrders()
+      }
+    }, 30000)
 
     return () => {
       supabase.removeChannel(channel)
+      clearInterval(refreshInterval)
     }
-  }, [])
+  }, [profile?.id])
+
+  // Clear new order count when orders are viewed
+  useEffect(() => {
+    if (orders.length > 0) {
+      clearNewOrderCount()
+    }
+  }, [orders.length])
+
+  // Handle real-time order updates
+  const handleOrderUpdate = async (payload: any) => {
+    console.log('Order updated:', payload)
+    await refreshOrders()
+  }
+
+  // Handle new order requests
+  const handleNewOrder = async (payload: any) => {
+    console.log('New order request received:', payload)
+    setNewOrderCount(prev => prev + 1)
+    await refreshOrders()
+    
+    // Show notification for new orders
+    if (payload.new) {
+      toast.success(`New order request received! Order #${payload.new.order_number}`, {
+        duration: 5000,
+        position: 'top-right'
+      })
+    }
+  }
+
+  // Optimized refresh function
+  const refreshOrders = async () => {
+    if (isRefreshing) return
+    
+    setIsRefreshing(true)
+    try {
+      await fetchOrders()
+      setLastRefreshTime(new Date())
+    } catch (error) {
+      console.error('Error refreshing orders:', error)
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
+
+  // Start periodic refresh as fallback
+  const startPeriodicRefresh = () => {
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        refreshOrders()
+      }
+    }, 10000) // More frequent fallback (10 seconds)
+    
+    return () => clearInterval(interval)
+  }
 
   const fetchOrders = async () => {
     try {
@@ -360,6 +448,11 @@ export function SupplierDashboard() {
     setSelectedOrder(null)
   }
 
+  // Clear new order count when user views orders
+  const clearNewOrderCount = () => {
+    setNewOrderCount(0)
+  }
+
   const handleImageUpload = (order: Order) => {
     setSelectedOrder(order)
     setShowImageUpload(true)
@@ -630,10 +723,23 @@ export function SupplierDashboard() {
               </h1>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">
-                Welcome, {profile?.full_name}
-                {profile?.company_name && ` (${profile.company_name})`}
-              </span>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">
+                  Welcome, {profile?.full_name}
+                  {profile?.company_name && ` (${profile.company_name})`}
+                </span>
+                {newOrderCount > 0 && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 animate-pulse">
+                    {newOrderCount} new order{newOrderCount > 1 ? 's' : ''}
+                  </span>
+                )}
+                {isRefreshing && (
+                  <div className="flex items-center text-xs text-gray-500">
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary-500 mr-1"></div>
+                    Refreshing...
+                  </div>
+                )}
+              </div>
               <button
                 onClick={handleSignOut}
                 className="btn-secondary flex items-center"

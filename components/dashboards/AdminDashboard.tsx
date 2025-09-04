@@ -41,30 +41,120 @@ export function AdminDashboard() {
     phone_number: '',
     product_link: ''
   })
+  const [lastRefreshTime, setLastRefreshTime] = useState<Date>(new Date())
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [newOrderCount, setNewOrderCount] = useState(0)
 
   useEffect(() => {
     fetchData()
+    clearNewOrderCount() // Clear any existing new order count
 
     // Set up real-time subscription for order updates
     const channel = supabase
-      .channel('orders_changes')
+      .channel('admin_orders_changes')
       .on('postgres_changes', 
         { 
           event: '*', 
           schema: 'public', 
           table: 'orders' 
         }, 
-        () => {
-          // Refresh data when any order changes
-          fetchData()
+        (payload) => {
+          console.log('Real-time order update:', payload)
+          handleOrderUpdate(payload)
         }
       )
-      .subscribe()
+      .on('postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'orders'
+        },
+        (payload) => {
+          console.log('New order created:', payload)
+          handleNewOrder(payload)
+        }
+      )
+      .subscribe((status) => {
+        console.log('Admin subscription status:', status)
+        if (status === 'SUBSCRIBED') {
+          console.log('Successfully subscribed to admin order updates')
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('Admin subscription error, falling back to periodic refresh')
+          startPeriodicRefresh()
+        }
+      })
+
+    // Periodic refresh fallback (every 30 seconds)
+    const refreshInterval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        refreshData()
+      }
+    }, 30000)
 
     return () => {
       supabase.removeChannel(channel)
+      clearInterval(refreshInterval)
     }
   }, [])
+
+  // Clear new order count when orders are viewed
+  useEffect(() => {
+    if (orders.length > 0) {
+      clearNewOrderCount()
+    }
+  }, [orders.length])
+
+  // Handle real-time order updates
+  const handleOrderUpdate = async (payload: any) => {
+    console.log('Order updated:', payload)
+    await refreshData()
+  }
+
+  // Handle new order creation
+  const handleNewOrder = async (payload: any) => {
+    console.log('New order created:', payload)
+    setNewOrderCount(prev => prev + 1)
+    await refreshData()
+    
+    // Show notification for new orders
+    if (payload.new) {
+      toast.success(`New order created! Order #${payload.new.order_number}`, {
+        duration: 5000,
+        position: 'top-right'
+      })
+    }
+  }
+
+  // Optimized refresh function
+  const refreshData = async () => {
+    if (isRefreshing) return
+    
+    setIsRefreshing(true)
+    try {
+      await fetchData()
+      setLastRefreshTime(new Date())
+    } catch (error) {
+      console.error('Error refreshing data:', error)
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
+
+  // Start periodic refresh as fallback
+  const startPeriodicRefresh = () => {
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        refreshData()
+      }
+    }, 10000) // More frequent fallback (10 seconds)
+    
+    return () => clearInterval(interval)
+  }
+
+  // Clear new order count when user views orders
+  const clearNewOrderCount = () => {
+    setNewOrderCount(0)
+  }
 
   const fetchData = async () => {
     try {
@@ -705,9 +795,22 @@ export function AdminDashboard() {
               </h1>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">
-                {profile?.full_name}
-              </span>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">
+                  {profile?.full_name}
+                </span>
+                {newOrderCount > 0 && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 animate-pulse">
+                    {newOrderCount} new order{newOrderCount > 1 ? 's' : ''}
+                  </span>
+                )}
+                {isRefreshing && (
+                  <div className="flex items-center text-xs text-gray-500">
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary-500 mr-1"></div>
+                    Refreshing...
+                  </div>
+                )}
+              </div>
               <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
                 Admin
               </span>
