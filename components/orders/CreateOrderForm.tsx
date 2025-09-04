@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { CreateOrderRequest, SavedAddress } from '@/types'
 import { FileUpload } from './FileUpload'
 import { AddressSelector } from '../addresses/AddressSelector'
+import { supabase } from '@/lib/supabase'
+import { toast } from 'react-hot-toast'
 
 interface CreateOrderFormProps {
   onSubmit: (orderData: CreateOrderRequest) => Promise<void>
@@ -23,6 +25,12 @@ export function CreateOrderForm({ onSubmit, onCancel }: CreateOrderFormProps) {
   const [loading, setLoading] = useState(false)
   const [selectedAddress, setSelectedAddress] = useState<SavedAddress | null>(null)
   const [showAddressForm, setShowAddressForm] = useState(false)
+  const [addressFormData, setAddressFormData] = useState({
+    name: '',
+    address: '',
+    phone: '',
+    is_default: false
+  })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -44,7 +52,65 @@ export function CreateOrderForm({ onSubmit, onCancel }: CreateOrderFormProps) {
   }
 
   const handleNewAddress = () => {
+    setAddressFormData({ name: '', address: '', phone: '', is_default: false })
     setShowAddressForm(true)
+  }
+
+  const handleAddressFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = e.target
+    setAddressFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? (e.target as HTMLInputElement).checked : value
+    }))
+  }
+
+  const handleSaveAddress = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!addressFormData.name.trim() || !addressFormData.address.trim()) {
+      toast.error('Please fill in name and address')
+      return
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        toast.error('You must be logged in to save addresses')
+        return
+      }
+
+      const { data, error } = await supabase
+        .from('saved_addresses')
+        .insert([{
+          customer_id: user.id,
+          name: addressFormData.name,
+          address: addressFormData.address,
+          phone: addressFormData.phone || null,
+          is_default: addressFormData.is_default
+        }])
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Error saving address:', error)
+        toast.error('Failed to save address')
+        return
+      }
+
+      // Use the saved address
+      setSelectedAddress(data)
+      setFormData(prev => ({
+        ...prev,
+        delivery_address: data.address,
+        phone_number: data.phone || ''
+      }))
+
+      toast.success('Address saved and selected!')
+      setShowAddressForm(false)
+    } catch (error) {
+      console.error('Error saving address:', error)
+      toast.error('Failed to save address')
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -220,17 +286,16 @@ export function CreateOrderForm({ onSubmit, onCancel }: CreateOrderFormProps) {
               This address will be saved to your account for future orders.
             </p>
             
-            <form onSubmit={(e) => {
-              e.preventDefault()
-              // For now, just close the modal - the address will be saved when the order is created
-              setShowAddressForm(false)
-            }} className="space-y-4">
+            <form onSubmit={handleSaveAddress} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Address Name *
                 </label>
                 <input
                   type="text"
+                  name="name"
+                  value={addressFormData.name}
+                  onChange={handleAddressFormChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
                   placeholder="e.g., Home, Office, Warehouse"
                   required
@@ -242,6 +307,9 @@ export function CreateOrderForm({ onSubmit, onCancel }: CreateOrderFormProps) {
                   Address *
                 </label>
                 <textarea
+                  name="address"
+                  value={addressFormData.address}
+                  onChange={handleAddressFormChange}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Enter full delivery address"
@@ -255,9 +323,26 @@ export function CreateOrderForm({ onSubmit, onCancel }: CreateOrderFormProps) {
                 </label>
                 <input
                   type="tel"
+                  name="phone"
+                  value={addressFormData.phone}
+                  onChange={handleAddressFormChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Enter phone number"
                 />
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="is_default"
+                  name="is_default"
+                  checked={addressFormData.is_default}
+                  onChange={handleAddressFormChange}
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                />
+                <label htmlFor="is_default" className="ml-2 block text-sm text-gray-700">
+                  Set as default address
+                </label>
               </div>
 
               <div className="flex space-x-3">
