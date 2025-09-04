@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { Order, CreateQuoteRequest, OrderStatus } from '@/types'
 import { CreateQuoteForm } from '../quotes/CreateQuoteForm'
 import { OrderFiles } from '../orders/OrderFiles'
-import { LogOut, Package, DollarSign, Upload, CheckCircle, Image as ImageIcon, X } from 'lucide-react'
+import { LogOut, Package, DollarSign, Upload, CheckCircle, Image as ImageIcon, X, ChevronDown } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 import { formatOrderTitle, formatOrderNumber } from '@/lib/orderUtils'
 
@@ -21,19 +21,37 @@ export function SupplierDashboard() {
   const [showOrderDetails, setShowOrderDetails] = useState(false)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
-  const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all')
   const [lastRefreshTime, setLastRefreshTime] = useState<Date>(new Date())
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [newOrderCount, setNewOrderCount] = useState(0)
   const [previousOrderCount, setPreviousOrderCount] = useState(0)
+  const [collapsedTables, setCollapsedTables] = useState<Record<string, boolean>>({
+    request_created: false,
+    price_quoted: false,
+    payment_confirmed: false,
+    production_started: false,
+    in_transit: false,
+    canceled: false
+  })
 
-  // Filter orders based on selected status (excluding request_created from main table)
-  const filteredOrders = statusFilter === 'all' 
-    ? orders.filter(order => order.status !== 'request_created')
-    : orders.filter(order => order.status === statusFilter && order.status !== 'request_created')
 
-  // Separate request orders (request_created status)
-  const requestOrders = orders.filter(order => order.status === 'request_created')
+  // Group orders by status for separate tables
+  const ordersByStatus = {
+    request_created: orders.filter(order => order.status === 'request_created'),
+    price_quoted: orders.filter(order => order.status === 'price_quoted'),
+    payment_confirmed: orders.filter(order => order.status === 'payment_confirmed'),
+    production_started: orders.filter(order => order.status === 'production_started'),
+    in_transit: orders.filter(order => order.status === 'in_transit'),
+    canceled: orders.filter(order => order.status === 'canceled')
+  }
+
+  // Toggle table collapse state
+  const toggleTableCollapse = (status: string) => {
+    setCollapsedTables(prev => ({
+      ...prev,
+      [status]: !prev[status]
+    }))
+  }
 
   // Count orders by status
   const statusCounts = {
@@ -667,9 +685,30 @@ export function SupplierDashboard() {
     return colors[status as keyof typeof colors] || 'text-gray-600 bg-gray-100'
   }
 
-  const getStatusCount = (status: string) => {
-    return getOrdersByStatus(status).length
+  const getTableHeaderColor = (status: string) => {
+    const colors = {
+      'request_created': 'bg-blue-50',
+      'price_quoted': 'bg-yellow-50',
+      'payment_confirmed': 'bg-green-50',
+      'production_started': 'bg-purple-50',
+      'in_transit': 'bg-indigo-50',
+      'canceled': 'bg-red-50'
+    }
+    return colors[status as keyof typeof colors] || 'bg-gray-50'
   }
+
+  const getTableBodyColor = (status: string) => {
+    const colors = {
+      'request_created': 'bg-white',
+      'price_quoted': 'bg-white',
+      'payment_confirmed': 'bg-white',
+      'production_started': 'bg-white',
+      'in_transit': 'bg-white',
+      'canceled': 'bg-white'
+    }
+    return colors[status as keyof typeof colors] || 'bg-white'
+  }
+
 
   if (loading) {
     return (
@@ -724,13 +763,7 @@ export function SupplierDashboard() {
       {/* Status Overview Bar */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
-            {/* Under Review */}
-            <div className="bg-orange-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-orange-600">{statusCounts.admin_review}</div>
-              <div className="text-sm text-orange-600">Under Review</div>
-            </div>
-
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {/* New Requests */}
             <div className="bg-blue-50 rounded-lg p-4 text-center">
               <div className="text-2xl font-bold text-blue-600">{statusCounts.request_created}</div>
@@ -776,193 +809,131 @@ export function SupplierDashboard() {
           <div className="mb-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">Order Management</h2>
             
-            {/* Status Filter */}
-            <div className="flex items-center space-x-4 mb-6">
-              <label htmlFor="status-filter" className="text-sm font-medium text-gray-700">
-                Filter by status:
-              </label>
-              <select
-                id="status-filter"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as OrderStatus | 'all')}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500 text-sm"
-              >
-                <option value="all">All Orders</option>
-                <option value="admin_review">Under Review</option>
-                <option value="request_created">Request Created</option>
-                <option value="price_quoted">Price Quoted</option>
-                <option value="payment_confirmed">Payment Confirmed</option>
-                <option value="production_started">In Depo</option>
-                <option value="in_transit">In Transit</option>
-                <option value="delivered">Delivered</option>
-                <option value="canceled">Canceled</option>
-              </select>
-              <span className="text-sm text-gray-500">
-                Showing {filteredOrders.length} of {orders.length - requestOrders.length} orders
-              </span>
-            </div>
           </div>
 
-          {/* Request Orders Table */}
-          {requestOrders.length > 0 && (
-            <div className="mb-8">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-blue-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        #Order
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Product Name
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Description
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Quantity
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Updated
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {requestOrders.map((order) => (
-                      <tr 
-                        key={order.id}
-                        onClick={() => {
-                          setSelectedOrder(order)
-                          setShowOrderDetails(true)
-                        }}
-                        className="hover:bg-gray-50 cursor-pointer"
+          {/* Separate Tables for Each Status */}
+          {Object.entries(ordersByStatus).map(([status, statusOrders]) => {
+            if (statusOrders.length === 0) return null
+
+            const isCollapsed = collapsedTables[status]
+            const headerColor = getTableHeaderColor(status)
+            const bodyColor = getTableBodyColor(status)
+            const statusLabel = getStatusLabel(status)
+
+            return (
+              <div key={status} className="mb-6">
+                {/* Table Header with Collapse Toggle */}
+                <div 
+                  className={`${headerColor} rounded-t-lg border border-gray-200 cursor-pointer hover:opacity-90 transition-opacity`}
+                  onClick={() => toggleTableCollapse(status)}
+                >
+                  <div className="px-6 py-4 flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <h3 className="text-lg font-medium text-gray-900">
+                        {statusLabel} ({statusOrders.length})
+                      </h3>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(status)}`}>
+                        {statusLabel}
+                      </span>
+                      <svg
+                        className={`w-5 h-5 text-gray-500 transform transition-transform ${isCollapsed ? 'rotate-180' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
                       >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {formatOrderNumber(order.order_number)}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {formatOrderTitle(order.order_number, order.title)}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                          {order.description}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {order.quantity}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            Request Created
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {order.updated_at ? new Date(order.updated_at).toLocaleDateString('en-US', {
-                            month: 'numeric',
-                            day: 'numeric',
-                            year: '2-digit',
-                            hour: 'numeric',
-                            minute: '2-digit'
-                          }) : '-'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Collapsible Table Content */}
+                {!isCollapsed && (
+                  <div className="overflow-x-auto border-l border-r border-b border-gray-200 rounded-b-lg">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className={headerColor}>
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            #Order
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Product Name
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Description
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Quantity
+                          </th>
+                          {status !== 'request_created' && (
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Given Price
+                            </th>
+                          )}
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Updated
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className={`${bodyColor} divide-y divide-gray-200`}>
+                        {statusOrders.map((order) => {
+                          const currentSupplierQuote = order.supplier_quotes?.find(quote => quote.supplier_id === profile?.id)
+                          
+                          return (
+                            <tr 
+                              key={order.id}
+                              onClick={() => handleViewOrderDetails(order)}
+                              className="hover:bg-gray-50 cursor-pointer transition-colors"
+                            >
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                {formatOrderNumber(order.order_number)}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {formatOrderTitle(order.order_number, order.title)}
+                              </td>
+                              <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                                {order.description}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {order.quantity}
+                              </td>
+                              {status !== 'request_created' && (
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {currentSupplierQuote?.price ? `$${currentSupplierQuote.price.toFixed(2)}` : '-'}
+                                </td>
+                              )}
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {order.updated_at ? new Date(order.updated_at).toLocaleString('en-US', {
+                                  year: 'numeric',
+                                  month: '2-digit',
+                                  day: '2-digit',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                }) : '-'}
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
+            )
+          })}
+
+          {/* Empty State */}
+          {orders.length === 0 && (
+            <div className="text-center py-12">
+              <Package className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No orders</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                Orders will appear here once they are assigned to you.
+              </p>
             </div>
           )}
-
-          {/* Orders Table */}
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    #Order
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Product Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Description
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Quantity
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Given Price
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Updated
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredOrders.map((order) => {
-                  const currentSupplierQuote = order.supplier_quotes?.find(quote => quote.supplier_id === profile?.id)
-                  
-                  return (
-                    <tr 
-                      key={order.id}
-                      onClick={() => handleViewOrderDetails(order)}
-                      className="hover:bg-gray-50 cursor-pointer transition-colors"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {formatOrderNumber(order.order_number)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {order.title}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
-                        {order.description}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {order.quantity}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {currentSupplierQuote ? `$${currentSupplierQuote.price.toFixed(2)}` : '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                          {getStatusLabel(order.status)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Date(order.updated_at).toLocaleString('en-US', {
-                          month: 'numeric',
-                          day: 'numeric',
-                          year: '2-digit',
-                          hour: 'numeric',
-                          minute: '2-digit',
-                          hour12: true
-                        })}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-            
-            {filteredOrders.length === 0 && (
-              <div className="text-center py-12">
-                <Package className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">
-                  {statusFilter === 'all' ? 'No orders' : `No ${statusFilter.replace('_', ' ')} orders`}
-                </h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  {statusFilter === 'all' 
-                    ? 'You don\'t have any orders assigned to you yet.' 
-                    : `No orders with status "${statusFilter.replace('_', ' ')}" found.`
-                  }
-                </p>
-              </div>
-            )}
-          </div>
         </div>
       </main>
 
