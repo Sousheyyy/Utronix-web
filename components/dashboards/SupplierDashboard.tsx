@@ -31,6 +31,18 @@ export function SupplierDashboard() {
   // Separate request orders (request_created status)
   const requestOrders = orders.filter(order => order.status === 'request_created')
 
+  // Count orders by status
+  const statusCounts = {
+    total: orders.length,
+    request_created: orders.filter(order => order.status === 'request_created').length,
+    price_quoted: orders.filter(order => order.status === 'price_quoted').length,
+    payment_confirmed: orders.filter(order => order.status === 'payment_confirmed').length,
+    production_started: orders.filter(order => order.status === 'production_started').length,
+    in_transit: orders.filter(order => order.status === 'in_transit').length,
+    delivered: orders.filter(order => order.status === 'delivered').length,
+    canceled: orders.filter(order => order.status === 'canceled').length,
+  }
+
   useEffect(() => {
     fetchOrders()
 
@@ -609,6 +621,61 @@ export function SupplierDashboard() {
           </div>
         </div>
       </header>
+
+      {/* Status Overview Bar */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+            {/* Total Orders */}
+            <div className="bg-gray-50 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-gray-900">{statusCounts.total}</div>
+              <div className="text-sm text-gray-600">Total Orders</div>
+            </div>
+
+            {/* New Requests */}
+            <div className="bg-blue-50 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-blue-600">{statusCounts.request_created}</div>
+              <div className="text-sm text-blue-600">New Requests</div>
+            </div>
+
+            {/* Price Quoted */}
+            <div className="bg-yellow-50 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-yellow-600">{statusCounts.price_quoted}</div>
+              <div className="text-sm text-yellow-600">Price Quoted</div>
+            </div>
+
+            {/* Payment Confirmed */}
+            <div className="bg-green-50 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-green-600">{statusCounts.payment_confirmed}</div>
+              <div className="text-sm text-green-600">Payment Confirmed</div>
+            </div>
+
+            {/* In Depo */}
+            <div className="bg-purple-50 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-purple-600">{statusCounts.production_started}</div>
+              <div className="text-sm text-purple-600">In Depo</div>
+            </div>
+
+            {/* In Transit */}
+            <div className="bg-indigo-50 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-indigo-600">{statusCounts.in_transit}</div>
+              <div className="text-sm text-indigo-600">In Transit</div>
+            </div>
+
+            {/* Delivered */}
+            <div className="bg-emerald-50 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-emerald-600">{statusCounts.delivered}</div>
+              <div className="text-sm text-emerald-600">Delivered</div>
+            </div>
+
+            {/* Canceled */}
+            <div className="bg-red-50 rounded-lg p-4 text-center">
+              <div className="text-2xl font-bold text-red-600">{statusCounts.canceled}</div>
+              <div className="text-sm text-red-600">Canceled</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Main Content - Table Layout */}
       <main className="w-full mx-auto py-6 px-4">
