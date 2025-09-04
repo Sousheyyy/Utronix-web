@@ -23,10 +23,13 @@ export function SupplierDashboard() {
   const [uploading, setUploading] = useState(false)
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all')
 
-  // Filter orders based on selected status
+  // Filter orders based on selected status (excluding request_created from main table)
   const filteredOrders = statusFilter === 'all' 
-    ? orders 
-    : orders.filter(order => order.status === statusFilter)
+    ? orders.filter(order => order.status !== 'request_created')
+    : orders.filter(order => order.status === statusFilter && order.status !== 'request_created')
+
+  // Separate request orders (request_created status)
+  const requestOrders = orders.filter(order => order.status === 'request_created')
 
   useEffect(() => {
     fetchOrders()
@@ -612,12 +615,9 @@ export function SupplierDashboard() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="mb-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">Order Management</h2>
-            <p className="text-sm text-gray-600 mb-6">
-              Manage your orders and quotes. Click on any row to view details and take actions.
-            </p>
             
             {/* Status Filter */}
-            <div className="flex items-center space-x-4 mb-4">
+            <div className="flex items-center space-x-4 mb-6">
               <label htmlFor="status-filter" className="text-sm font-medium text-gray-700">
                 Filter by status:
               </label>
@@ -637,10 +637,82 @@ export function SupplierDashboard() {
                 <option value="canceled">Canceled</option>
               </select>
               <span className="text-sm text-gray-500">
-                Showing {filteredOrders.length} of {orders.length} orders
+                Showing {filteredOrders.length} of {orders.length - requestOrders.length} orders
               </span>
             </div>
           </div>
+
+          {/* Request Orders Table */}
+          {requestOrders.length > 0 && (
+            <div className="mb-8">
+              <h3 className="text-md font-medium text-gray-900 mb-4">New Requests ({requestOrders.length})</h3>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-blue-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        #Order
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Product Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Description
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Quantity
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Updated
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {requestOrders.map((order) => (
+                      <tr 
+                        key={order.id}
+                        onClick={() => {
+                          setSelectedOrder(order)
+                          setShowOrderDetails(true)
+                        }}
+                        className="hover:bg-gray-50 cursor-pointer"
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {formatOrderNumber(order.order_number)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {formatOrderTitle(order.title)}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                          {order.description}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {order.quantity}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            Request Created
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {order.updated_at ? new Date(order.updated_at).toLocaleDateString('en-US', {
+                            month: 'numeric',
+                            day: 'numeric',
+                            year: '2-digit',
+                            hour: 'numeric',
+                            minute: '2-digit'
+                          }) : '-'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           {/* Orders Table */}
           <div className="overflow-x-auto">
