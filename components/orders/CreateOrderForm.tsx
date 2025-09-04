@@ -102,7 +102,13 @@ export function CreateOrderForm({ onSubmit, onCancel }: CreateOrderFormProps) {
 
       if (error) {
         console.error('Error saving address:', error)
-        toast.error('Failed to save address')
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        })
+        toast.error(`Failed to save address: ${error.message}`)
         return
       }
 
@@ -118,7 +124,11 @@ export function CreateOrderForm({ onSubmit, onCancel }: CreateOrderFormProps) {
       setShowAddressForm(false)
     } catch (error) {
       console.error('Error saving address:', error)
-      toast.error('Failed to save address')
+      if (error instanceof Error) {
+        toast.error(`Failed to save address: ${error.message}`)
+      } else {
+        toast.error('Failed to save address: Unknown error')
+      }
     }
   }
 

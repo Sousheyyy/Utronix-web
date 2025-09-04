@@ -31,12 +31,21 @@ export function AddressSelector({ selectedAddress, onAddressSelect, onNewAddress
 
       if (error) {
         console.error('Error fetching addresses:', error)
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        })
         return
       }
 
       setAddresses(data || [])
     } catch (error) {
       console.error('Error fetching addresses:', error)
+      if (error instanceof Error) {
+        console.error('Error message:', error.message)
+      }
     } finally {
       setLoading(false)
     }
