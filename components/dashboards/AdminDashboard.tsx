@@ -810,7 +810,7 @@ export function AdminDashboard() {
       {/* New Order Notification Bar */}
       {(newOrderCount > 0 || isRefreshing) && (
         <div className="bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-6 lg:px-8 py-2">
+          <div className="w-full px-6 lg:px-8 py-2">
             <div className="flex items-center justify-center space-x-4">
               {newOrderCount > 0 && (
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 animate-pulse">
@@ -829,7 +829,7 @@ export function AdminDashboard() {
       )}
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 px-6 lg:px-8">
+      <main className="w-full py-6 px-6 lg:px-8">
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white overflow-hidden shadow rounded-lg">

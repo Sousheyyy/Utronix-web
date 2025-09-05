@@ -731,7 +731,7 @@ export function SupplierDashboard() {
       {/* New Order Notification Bar */}
       {(newOrderCount > 0 || isRefreshing) && (
         <div className="bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-6 lg:px-8 py-2">
+          <div className="w-full px-6 lg:px-8 py-2">
             <div className="flex items-center justify-center space-x-4">
               {newOrderCount > 0 && (
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 animate-pulse">
@@ -751,7 +751,7 @@ export function SupplierDashboard() {
 
       {/* Status Overview Bar */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-4">
+        <div className="w-full px-6 lg:px-8 py-4">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
             {/* New Requests */}
             <div className="bg-blue-50 rounded-lg p-4 text-center">
@@ -799,7 +799,7 @@ export function SupplierDashboard() {
       </div>
 
       {/* Main Content - Table Layout */}
-      <main className="max-w-7xl mx-auto py-6 px-6 lg:px-8">
+      <main className="w-full py-6 px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="mb-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">Order Management</h2>
