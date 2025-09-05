@@ -11,6 +11,7 @@ import { FileUpload } from '../orders/FileUpload'
 import { FileUploadService } from '@/lib/fileUploadService'
 import { SavedAddresses } from '../addresses/SavedAddresses'
 import { LogOut, Plus, Package, Settings, ShoppingCart, Clock, Edit, X, Trash2, MapPin } from 'lucide-react'
+import { AppHeader } from '../layout/AppHeader'
 import { toast } from 'react-hot-toast'
 
 export function CustomerDashboard() {
@@ -421,33 +422,7 @@ export function CustomerDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <Settings className="h-8 w-8 text-primary-600 mr-3" />
-              <h1 className="text-2xl font-bold text-gray-900">
-                Customer Portal
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">
-                {profile?.full_name}
-              </span>
-              <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                Customer
-              </span>
-              <button
-                onClick={handleSignOut}
-                className="btn-secondary flex items-center"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppHeader onSignOut={handleSignOut} />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { SavedAddress } from '@/types'
-import { MapPin, Plus, Check, Star } from 'lucide-react'
+import { MapPin, Plus, Check } from 'lucide-react'
 
 interface AddressSelectorProps {
   selectedAddress: SavedAddress | null
@@ -23,10 +23,16 @@ export function AddressSelector({ selectedAddress, onAddressSelect, onNewAddress
 
   const fetchAddresses = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        setLoading(false)
+        return
+      }
+
       const { data, error } = await supabase
         .from('saved_addresses')
         .select('*')
-        .order('is_default', { ascending: false })
+        .eq('customer_id', user.id)
         .order('created_at', { ascending: false })
 
       if (error) {
@@ -80,12 +86,6 @@ export function AddressSelector({ selectedAddress, onAddressSelect, onNewAddress
               <div>
                 <div className="flex items-center">
                   <span className="font-medium text-gray-900">{selectedAddress.name}</span>
-                  {selectedAddress.is_default && (
-                    <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-                      <Star className="h-3 w-3 mr-1" />
-                      Default
-                    </span>
-                  )}
                 </div>
                 <p className="text-sm text-gray-600 break-words mt-1">{selectedAddress.address}</p>
                 {selectedAddress.phone && (
@@ -149,12 +149,6 @@ export function AddressSelector({ selectedAddress, onAddressSelect, onNewAddress
                       <div>
                         <div className="flex items-center">
                           <span className="font-medium text-gray-900">{address.name}</span>
-                          {address.is_default && (
-                            <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-                              <Star className="h-3 w-3 mr-1" />
-                              Default
-                            </span>
-                          )}
                         </div>
                         <p className="text-sm text-gray-600 break-words mt-1">{address.address}</p>
                         {address.phone && (

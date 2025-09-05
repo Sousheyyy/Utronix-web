@@ -8,6 +8,7 @@ import { AdminOrderManagement } from '@/components/admin/AdminOrderManagement'
 import { SystemStats } from '@/components/admin/SystemStats'
 import { formatOrderNumber, matchesOrderNumber } from '@/lib/orderUtils'
 import { LogOut, Settings, Users, Package, BarChart3, ShoppingCart, DollarSign, PieChart, Percent, X, ArrowUpDown, ArrowUp, ArrowDown, Clock, User, Edit, Upload, CheckCircle, MessageSquare, CreditCard, Truck, Factory, XCircle } from 'lucide-react'
+import { AppHeader } from '../layout/AppHeader'
 import { toast } from 'react-hot-toast'
 
 export function AdminDashboard() {
@@ -804,46 +805,28 @@ export function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <Settings className="h-8 w-8 text-primary-600 mr-3" />
-              <h1 className="text-2xl font-bold text-gray-900">
-                Sales & Finance Tracking
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">
-                  {profile?.full_name}
+      <AppHeader onSignOut={handleSignOut} />
+      
+      {/* New Order Notification Bar */}
+      {(newOrderCount > 0 || isRefreshing) && (
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-8xl mx-auto px-4 py-2">
+            <div className="flex items-center justify-center space-x-4">
+              {newOrderCount > 0 && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 animate-pulse">
+                  {newOrderCount} new order{newOrderCount > 1 ? 's' : ''} available
                 </span>
-                {newOrderCount > 0 && (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 animate-pulse">
-                    {newOrderCount} new order{newOrderCount > 1 ? 's' : ''}
-                  </span>
-                )}
-                {isRefreshing && (
-                  <div className="flex items-center text-xs text-gray-500">
-                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary-500 mr-1"></div>
-                    Refreshing...
-                  </div>
-                )}
-              </div>
-              <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                Admin
-              </span>
-              <button
-                onClick={handleSignOut}
-                className="btn-secondary flex items-center"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </button>
+              )}
+              {isRefreshing && (
+                <div className="flex items-center text-sm text-gray-500">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-500 mr-2"></div>
+                  Refreshing orders...
+                </div>
+              )}
             </div>
           </div>
         </div>
-      </header>
+      )}
 
       {/* Main Content */}
       <main className="max-w-8xl mx-auto py-6 px-4 sm:px-6 lg:px-8">

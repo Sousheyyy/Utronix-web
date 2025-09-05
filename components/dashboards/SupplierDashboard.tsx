@@ -7,6 +7,7 @@ import { Order, CreateQuoteRequest, OrderStatus } from '@/types'
 import { CreateQuoteForm } from '../quotes/CreateQuoteForm'
 import { OrderFiles } from '../orders/OrderFiles'
 import { LogOut, Package, DollarSign, Upload, CheckCircle, Image as ImageIcon, X, ChevronDown } from 'lucide-react'
+import { AppHeader } from '../layout/AppHeader'
 import { toast } from 'react-hot-toast'
 import { formatOrderTitle, formatOrderNumber } from '@/lib/orderUtils'
 
@@ -725,44 +726,28 @@ export function SupplierDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm shadow-sm border-b border-gray-200">
-        <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <Package className="h-8 w-8 text-primary-600 mr-3" />
-              <h1 className="text-2xl font-bold text-gray-900">
-                Supplier Dashboard
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-gray-600">
-                  Welcome, {profile?.full_name}
-                  {profile?.company_name && ` (${profile.company_name})`}
+      <AppHeader onSignOut={handleSignOut} />
+      
+      {/* New Order Notification Bar */}
+      {(newOrderCount > 0 || isRefreshing) && (
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 py-2">
+            <div className="flex items-center justify-center space-x-4">
+              {newOrderCount > 0 && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 animate-pulse">
+                  {newOrderCount} new order{newOrderCount > 1 ? 's' : ''} available
                 </span>
-                {newOrderCount > 0 && (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 animate-pulse">
-                    {newOrderCount} new order{newOrderCount > 1 ? 's' : ''}
-                  </span>
-                )}
-                {isRefreshing && (
-                  <div className="flex items-center text-xs text-gray-500">
-                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary-500 mr-1"></div>
-                    Refreshing...
-                  </div>
-                )}
-              </div>
-              <button
-                onClick={handleSignOut}
-                className="btn-secondary flex items-center"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </button>
+              )}
+              {isRefreshing && (
+                <div className="flex items-center text-sm text-gray-500">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-500 mr-2"></div>
+                  Refreshing orders...
+                </div>
+              )}
             </div>
           </div>
         </div>
-      </header>
+      )}
 
       {/* Status Overview Bar */}
       <div className="bg-white border-b border-gray-200">
@@ -873,6 +858,9 @@ export function SupplierDashboard() {
                             Description
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Product Link
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Quantity
                           </th>
                           {status !== 'request_created' && (
@@ -900,10 +888,28 @@ export function SupplierDashboard() {
                                   {formatOrderNumber(order.order_number)}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                  {formatOrderTitle(order.order_number, order.title)}
+                                  {order.title}
                                 </td>
                                 <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
                                   {order.description}
+                                </td>
+                                <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
+                                  {order.product_link ? (
+                                    <a 
+                                      href={order.product_link} 
+                                      target="_blank" 
+                                      rel="noopener noreferrer"
+                                      className="text-blue-600 hover:text-blue-800 underline truncate block"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      {order.product_link.length > 30 
+                                        ? `${order.product_link.substring(0, 30)}...` 
+                                        : order.product_link
+                                      }
+                                    </a>
+                                  ) : (
+                                    <span className="text-gray-400">No link</span>
+                                  )}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                   {order.quantity}
@@ -928,7 +934,7 @@ export function SupplierDashboard() {
                         ) : (
                           <tr>
                             <td 
-                              colSpan={status !== 'request_created' ? 6 : 5} 
+                              colSpan={status !== 'request_created' ? 7 : 6} 
                               className="px-6 py-12 text-center text-sm text-gray-500"
                             >
                               <Package className="mx-auto h-8 w-8 text-gray-400 mb-2" />
@@ -975,6 +981,19 @@ export function SupplierDashboard() {
                 <p className="text-sm text-gray-600">
                   <strong>Description:</strong> {selectedOrder.description}
                 </p>
+                {selectedOrder.product_link && (
+                  <p className="text-sm text-gray-600">
+                    <strong>Product Link:</strong> 
+                    <a 
+                      href={selectedOrder.product_link} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 underline ml-1"
+                    >
+                      View Link
+                    </a>
+                  </p>
+                )}
                 <p className="text-sm text-gray-600">
                   <strong>Quantity:</strong> {selectedOrder.quantity}
                 </p>
@@ -1009,6 +1028,19 @@ export function SupplierDashboard() {
                 <p className="text-sm text-gray-600">
                   <strong>Description:</strong> {selectedOrder.description}
                 </p>
+                {selectedOrder.product_link && (
+                  <p className="text-sm text-gray-600">
+                    <strong>Product Link:</strong> 
+                    <a 
+                      href={selectedOrder.product_link} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 underline ml-1"
+                    >
+                      View Link
+                    </a>
+                  </p>
+                )}
                 <p className="text-sm text-gray-600">
                   <strong>Quantity:</strong> {selectedOrder.quantity}
                 </p>
@@ -1154,6 +1186,26 @@ export function SupplierDashboard() {
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-600">Description:</span>
                         <span className="text-sm font-medium text-gray-900 max-w-xs text-right break-words">{selectedOrder.description}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">Product Link:</span>
+                        <span className="text-sm font-medium text-gray-900 max-w-xs text-right">
+                          {selectedOrder.product_link ? (
+                            <a 
+                              href={selectedOrder.product_link} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline break-all"
+                            >
+                              {selectedOrder.product_link.length > 40 
+                                ? `${selectedOrder.product_link.substring(0, 40)}...` 
+                                : selectedOrder.product_link
+                              }
+                            </a>
+                          ) : (
+                            <span className="text-gray-400">No link provided</span>
+                          )}
+                        </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-600">Quantity:</span>
@@ -1444,7 +1496,7 @@ function OrderCard({ order, onViewDetails, currentSupplierId }: OrderCardProps) 
     >
       <div className="mb-3">
         <h4 className="font-medium text-gray-900 text-sm mb-2 line-clamp-2">
-          {formatOrderTitle(order.order_number, order.title)}
+          {order.title}
         </h4>
         <p className="text-gray-600 text-xs line-clamp-2">
           {order.description}

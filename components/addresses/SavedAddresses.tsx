@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { SavedAddress } from '@/types'
-import { Plus, Edit, Trash2, MapPin, Phone, Star, Check } from 'lucide-react'
+import { Plus, Edit, Trash2, MapPin, Phone, Check } from 'lucide-react'
 import { toast } from 'react-hot-toast'
 
 interface SavedAddressesProps {
@@ -19,8 +19,7 @@ export function SavedAddresses({ onAddressSelect, showSelectButton = false }: Sa
   const [formData, setFormData] = useState({
     name: '',
     address: '',
-    phone: '',
-    is_default: false
+    phone: ''
   })
 
   useEffect(() => {
@@ -29,10 +28,17 @@ export function SavedAddresses({ onAddressSelect, showSelectButton = false }: Sa
 
   const fetchAddresses = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        toast.error('You must be logged in to view addresses')
+        setLoading(false)
+        return
+      }
+
       const { data, error } = await supabase
         .from('saved_addresses')
         .select('*')
-        .order('is_default', { ascending: false })
+        .eq('customer_id', user.id)
         .order('created_at', { ascending: false })
 
       if (error) {
@@ -73,7 +79,6 @@ export function SavedAddresses({ onAddressSelect, showSelectButton = false }: Sa
             name: formData.name,
             address: formData.address,
             phone: formData.phone || null,
-            is_default: formData.is_default,
             updated_at: new Date().toISOString()
           })
           .eq('id', editingAddress.id)
@@ -93,8 +98,7 @@ export function SavedAddresses({ onAddressSelect, showSelectButton = false }: Sa
             customer_id: user.id,
             name: formData.name,
             address: formData.address,
-            phone: formData.phone || null,
-            is_default: formData.is_default
+            phone: formData.phone || null
           }])
 
         if (error) {
@@ -106,7 +110,7 @@ export function SavedAddresses({ onAddressSelect, showSelectButton = false }: Sa
         toast.success('Address saved successfully')
       }
 
-      setFormData({ name: '', address: '', phone: '', is_default: false })
+      setFormData({ name: '', address: '', phone: '' })
       setShowAddForm(false)
       setEditingAddress(null)
       fetchAddresses()
@@ -121,8 +125,7 @@ export function SavedAddresses({ onAddressSelect, showSelectButton = false }: Sa
     setFormData({
       name: address.name,
       address: address.address,
-      phone: address.phone || '',
-      is_default: address.is_default
+      phone: address.phone || ''
     })
     setShowAddForm(true)
   }
@@ -152,26 +155,6 @@ export function SavedAddresses({ onAddressSelect, showSelectButton = false }: Sa
     }
   }
 
-  const handleSetDefault = async (addressId: string) => {
-    try {
-      const { error } = await supabase
-        .from('saved_addresses')
-        .update({ is_default: true })
-        .eq('id', addressId)
-
-      if (error) {
-        console.error('Error setting default address:', error)
-        toast.error('Failed to set default address')
-        return
-      }
-
-      toast.success('Default address updated')
-      fetchAddresses()
-    } catch (error) {
-      console.error('Error setting default address:', error)
-      toast.error('Failed to set default address')
-    }
-  }
 
   const handleSelect = (address: SavedAddress) => {
     if (onAddressSelect) {
@@ -195,7 +178,7 @@ export function SavedAddresses({ onAddressSelect, showSelectButton = false }: Sa
         <button
           onClick={() => {
             setEditingAddress(null)
-            setFormData({ name: '', address: '', phone: '', is_default: false })
+            setFormData({ name: '', address: '', phone: '' })
             setShowAddForm(true)
           }}
           className="btn-primary flex items-center"
@@ -217,19 +200,11 @@ export function SavedAddresses({ onAddressSelect, showSelectButton = false }: Sa
           {addresses.map((address) => (
             <div
               key={address.id}
-              className={`border rounded-lg p-4 ${
-                address.is_default ? 'border-primary-500 bg-primary-50' : 'border-gray-200'
-              }`}
+              className="border border-gray-200 rounded-lg p-4"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center">
                   <h4 className="font-medium text-gray-900">{address.name}</h4>
-                  {address.is_default && (
-                    <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
-                      <Star className="h-3 w-3 mr-1" />
-                      Default
-                    </span>
-                  )}
                 </div>
                 <div className="flex space-x-2">
                   {showSelectButton && (
@@ -268,14 +243,6 @@ export function SavedAddresses({ onAddressSelect, showSelectButton = false }: Sa
                 )}
               </div>
 
-              {!address.is_default && (
-                <button
-                  onClick={() => handleSetDefault(address.id)}
-                  className="mt-3 text-xs text-primary-600 hover:text-primary-800 font-medium"
-                >
-                  Set as default
-                </button>
-              )}
             </div>
           ))}
         </div>
@@ -332,18 +299,6 @@ export function SavedAddresses({ onAddressSelect, showSelectButton = false }: Sa
                   />
                 </div>
 
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="is_default"
-                    checked={formData.is_default}
-                    onChange={(e) => setFormData(prev => ({ ...prev, is_default: e.target.checked }))}
-                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                  />
-                  <label htmlFor="is_default" className="ml-2 block text-sm text-gray-700">
-                    Set as default address
-                  </label>
-                </div>
 
                 <div className="flex space-x-3">
                   <button
@@ -357,7 +312,7 @@ export function SavedAddresses({ onAddressSelect, showSelectButton = false }: Sa
                     onClick={() => {
                       setShowAddForm(false)
                       setEditingAddress(null)
-                      setFormData({ name: '', address: '', phone: '', is_default: false })
+                      setFormData({ name: '', address: '', phone: '' })
                     }}
                     className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
                   >
