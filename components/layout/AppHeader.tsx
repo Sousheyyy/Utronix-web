@@ -133,7 +133,7 @@ export function AppHeader({ onSignOut }: AppHeaderProps) {
 
               {/* Role Badge */}
               <div className="bg-green-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                {profile?.role?.charAt(0).toUpperCase() + profile?.role?.slice(1) || 'Customer'}
+                {profile?.role ? profile.role.charAt(0).toUpperCase() + profile.role.slice(1) : 'Customer'}
               </div>
 
               {/* Logout Button */}
