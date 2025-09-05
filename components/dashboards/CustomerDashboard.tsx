@@ -425,7 +425,7 @@ export function CustomerDashboard() {
       <AppHeader onSignOut={handleSignOut} />
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto py-6 px-6 lg:px-8">
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <div className="bg-white overflow-hidden shadow rounded-lg">

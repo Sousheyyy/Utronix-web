@@ -20,8 +20,8 @@ export function AppHeader({ onSignOut }: AppHeaderProps) {
     <>
       {/* Top Contact Bar */}
       <div className="bg-slate-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-2">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex items-center justify-between py-3">
             {/* Social Media Links */}
             <div className="flex items-center space-x-4">
               <a
@@ -85,30 +85,28 @@ export function AppHeader({ onSignOut }: AppHeaderProps) {
 
       {/* Main Navigation Bar */}
       <div className="bg-slate-800 text-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-4">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex items-center justify-between py-5">
             {/* Logo and Title */}
             <div className="flex items-center">
-              <div className="bg-white rounded-lg p-3 mr-4 shadow-sm min-h-[3rem] flex items-center justify-center">
-                <img 
-                  src="/utronix-logo.png" 
-                  alt="UTRONIX Logo" 
-                  className="h-12 w-auto max-w-full"
-                  onLoad={() => console.log('Logo loaded successfully')}
-                  onError={(e) => {
-                    console.log('Logo failed to load, using fallback');
-                    // Fallback to text if image fails to load
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                    const parent = target.parentElement;
-                    if (parent) {
-                      parent.innerHTML = '<span class="text-slate-600 font-semibold text-2xl">UTRONIX</span>';
-                    }
-                  }}
-                />
-              </div>
+              <img 
+                src="/utronix-logo.png" 
+                alt="UTRONIX Logo" 
+                className="h-10 w-auto mr-4"
+                onLoad={() => console.log('Logo loaded successfully')}
+                onError={(e) => {
+                  console.log('Logo failed to load, using fallback');
+                  // Fallback to text if image fails to load
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  if (parent) {
+                    parent.innerHTML = '<span class="text-white font-semibold text-2xl">UTRONIX</span>';
+                  }
+                }}
+              />
               <div>
-                <h1 className="text-xl text-white font-normal">Order Management System</h1>
+                <h1 className="text-lg text-white font-normal">Order Management System</h1>
               </div>
             </div>
 
