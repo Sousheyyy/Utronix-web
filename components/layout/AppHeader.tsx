@@ -106,7 +106,7 @@ export function AppHeader({ onSignOut }: AppHeaderProps) {
                 }}
               />
               <div>
-                <h1 className="text-lg text-white font-normal">Order Management System</h1>
+                <h1 className="text-sm text-white font-normal">Order Management System</h1>
               </div>
             </div>
 
