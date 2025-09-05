@@ -92,7 +92,7 @@ export function AppHeader({ onSignOut }: AppHeaderProps) {
               <img 
                 src="/utronix-logo.png" 
                 alt="UTRONIX Logo" 
-                className="h-10 w-auto mr-4"
+                className="h-12 w-auto mr-4"
                 onLoad={() => console.log('Logo loaded successfully')}
                 onError={(e) => {
                   console.log('Logo failed to load, using fallback');
