@@ -858,9 +858,6 @@ export function SupplierDashboard() {
                             Description
                           </th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Product Link
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Quantity
                           </th>
                           {status !== 'request_created' && (
@@ -893,24 +890,6 @@ export function SupplierDashboard() {
                                 <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
                                   {order.description}
                                 </td>
-                                <td className="px-6 py-4 text-sm text-gray-500 max-w-xs">
-                                  {order.product_link ? (
-                                    <a 
-                                      href={order.product_link} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
-                                      className="text-blue-600 hover:text-blue-800 underline truncate block"
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      {order.product_link.length > 30 
-                                        ? `${order.product_link.substring(0, 30)}...` 
-                                        : order.product_link
-                                      }
-                                    </a>
-                                  ) : (
-                                    <span className="text-gray-400">No link</span>
-                                  )}
-                                </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                   {order.quantity}
                                 </td>
@@ -934,7 +913,7 @@ export function SupplierDashboard() {
                         ) : (
                           <tr>
                             <td 
-                              colSpan={status !== 'request_created' ? 7 : 6} 
+                              colSpan={status !== 'request_created' ? 6 : 5} 
                               className="px-6 py-12 text-center text-sm text-gray-500"
                             >
                               <Package className="mx-auto h-8 w-8 text-gray-400 mb-2" />
