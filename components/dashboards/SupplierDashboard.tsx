@@ -731,7 +731,7 @@ export function SupplierDashboard() {
       {/* New Order Notification Bar */}
       {(newOrderCount > 0 || isRefreshing) && (
         <div className="bg-white border-b border-gray-200">
-          <div className="w-full px-6 lg:px-8 py-2">
+          <div className="w-full px-4 sm:px-6 lg:px-8 py-2">
             <div className="flex items-center justify-center space-x-4">
               {newOrderCount > 0 && (
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 animate-pulse">
@@ -751,56 +751,56 @@ export function SupplierDashboard() {
 
       {/* Status Overview Bar */}
       <div className="bg-white border-b border-gray-200">
-        <div className="w-full px-6 lg:px-8 py-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 sm:gap-4">
             {/* New Requests */}
-            <div className="bg-blue-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-blue-600">{statusCounts.request_created}</div>
-              <div className="text-sm text-blue-600">New Requests</div>
+            <div className="bg-blue-50 rounded-lg p-2 sm:p-4 text-center">
+              <div className="text-lg sm:text-2xl font-bold text-blue-600">{statusCounts.request_created}</div>
+              <div className="text-xs sm:text-sm text-blue-600">New Requests</div>
             </div>
 
             {/* Price Quoted */}
-            <div className="bg-yellow-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-yellow-600">{statusCounts.price_quoted}</div>
-              <div className="text-sm text-yellow-600">Price Quoted</div>
+            <div className="bg-yellow-50 rounded-lg p-2 sm:p-4 text-center">
+              <div className="text-lg sm:text-2xl font-bold text-yellow-600">{statusCounts.price_quoted}</div>
+              <div className="text-xs sm:text-sm text-yellow-600">Price Quoted</div>
             </div>
 
             {/* Payment Confirmed */}
-            <div className="bg-green-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-green-600">{statusCounts.payment_confirmed}</div>
-              <div className="text-sm text-green-600">Payment Confirmed</div>
+            <div className="bg-green-50 rounded-lg p-2 sm:p-4 text-center">
+              <div className="text-lg sm:text-2xl font-bold text-green-600">{statusCounts.payment_confirmed}</div>
+              <div className="text-xs sm:text-sm text-green-600">Payment Confirmed</div>
             </div>
 
             {/* In Depo */}
-            <div className="bg-purple-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-purple-600">{statusCounts.production_started}</div>
-              <div className="text-sm text-purple-600">In Depo</div>
+            <div className="bg-purple-50 rounded-lg p-2 sm:p-4 text-center">
+              <div className="text-lg sm:text-2xl font-bold text-purple-600">{statusCounts.production_started}</div>
+              <div className="text-xs sm:text-sm text-purple-600">In Depo</div>
             </div>
 
             {/* In Transit */}
-            <div className="bg-indigo-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-indigo-600">{statusCounts.in_transit}</div>
-              <div className="text-sm text-indigo-600">In Transit</div>
+            <div className="bg-indigo-50 rounded-lg p-2 sm:p-4 text-center">
+              <div className="text-lg sm:text-2xl font-bold text-indigo-600">{statusCounts.in_transit}</div>
+              <div className="text-xs sm:text-sm text-indigo-600">In Transit</div>
             </div>
 
             {/* Delivered */}
-            <div className="bg-gray-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-gray-600">{statusCounts.delivered}</div>
-              <div className="text-sm text-gray-600">Delivered</div>
+            <div className="bg-gray-50 rounded-lg p-2 sm:p-4 text-center">
+              <div className="text-lg sm:text-2xl font-bold text-gray-600">{statusCounts.delivered}</div>
+              <div className="text-xs sm:text-sm text-gray-600">Delivered</div>
             </div>
 
             {/* Canceled */}
-            <div className="bg-red-50 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold text-red-600">{statusCounts.canceled}</div>
-              <div className="text-sm text-red-600">Canceled</div>
+            <div className="bg-red-50 rounded-lg p-2 sm:p-4 text-center">
+              <div className="text-lg sm:text-2xl font-bold text-red-600">{statusCounts.canceled}</div>
+              <div className="text-xs sm:text-sm text-red-600">Canceled</div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Content - Table Layout */}
-      <main className="w-full py-6 px-6 lg:px-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <main className="w-full py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
           <div className="mb-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">Order Management</h2>
             
@@ -845,7 +845,7 @@ export function SupplierDashboard() {
                 {/* Collapsible Table Content */}
                 {!isCollapsed && (
                   <div className="overflow-x-auto border-l border-r border-b border-gray-200 rounded-b-lg">
-                    <table className="min-w-full divide-y divide-gray-200">
+                    <table className="min-w-full divide-y divide-gray-200" style={{ minWidth: '600px' }}>
                       <thead className={headerColor}>
                         <tr>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -1119,7 +1119,7 @@ export function SupplierDashboard() {
       {/* Order Details Modal */}
       {showOrderDetails && selectedOrder && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-10 mx-auto p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
+          <div className="relative top-2 sm:top-10 mx-auto p-3 sm:p-5 border w-11/12 max-w-4xl shadow-lg rounded-md bg-white">
             <div className="mt-3">
               {/* Modal Header */}
               <div className="flex items-center justify-between mb-6">
@@ -1147,7 +1147,7 @@ export function SupplierDashboard() {
               </div>
 
               {/* Modal Body */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 {/* Left Column - Order Information */}
                 <div className="space-y-6">
                   {/* Basic Information */}

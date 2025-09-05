@@ -810,7 +810,7 @@ export function AdminDashboard() {
       {/* New Order Notification Bar */}
       {(newOrderCount > 0 || isRefreshing) && (
         <div className="bg-white border-b border-gray-200">
-          <div className="w-full px-6 lg:px-8 py-2">
+          <div className="w-full px-4 sm:px-6 lg:px-8 py-2">
             <div className="flex items-center justify-center space-x-4">
               {newOrderCount > 0 && (
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 animate-pulse">
@@ -829,21 +829,21 @@ export function AdminDashboard() {
       )}
 
       {/* Main Content */}
-      <main className="w-full py-6 px-6 lg:px-8">
+      <main className="w-full py-4 sm:py-6 px-4 sm:px-6 lg:px-8">
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
           <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
+            <div className="p-3 sm:p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <ShoppingCart className="h-6 w-6 text-gray-400" />
+                  <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
                 </div>
-                <div className="ml-5 w-0 flex-1">
+                <div className="ml-3 sm:ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
+                    <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">
                       Total Orders
                     </dt>
-                    <dd className="text-lg font-medium text-gray-900">
+                    <dd className="text-base sm:text-lg font-medium text-gray-900">
                       {orders.length}
                     </dd>
                   </dl>
@@ -853,17 +853,17 @@ export function AdminDashboard() {
           </div>
 
           <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
+            <div className="p-3 sm:p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <Package className="h-6 w-6 text-gray-400" />
+                  <Package className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
                 </div>
-                <div className="ml-5 w-0 flex-1">
+                <div className="ml-3 sm:ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
+                    <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">
                       Order Created
                     </dt>
-                    <dd className="text-lg font-medium text-gray-900">
+                    <dd className="text-base sm:text-lg font-medium text-gray-900">
                       {getOrdersCreated()}
                     </dd>
                   </dl>
@@ -873,17 +873,17 @@ export function AdminDashboard() {
           </div>
 
           <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
+            <div className="p-3 sm:p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <DollarSign className="h-6 w-6 text-gray-400" />
+                  <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
                 </div>
-                <div className="ml-5 w-0 flex-1">
+                <div className="ml-3 sm:ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
+                    <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">
                       Payment Received
                     </dt>
-                    <dd className="text-lg font-medium text-gray-900">
+                    <dd className="text-base sm:text-lg font-medium text-gray-900">
                       {getPaymentReceived()}
                     </dd>
                   </dl>
@@ -893,17 +893,17 @@ export function AdminDashboard() {
           </div>
 
           <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
+            <div className="p-3 sm:p-5">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <BarChart3 className="h-6 w-6 text-gray-400" />
+                  <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 text-gray-400" />
                 </div>
-                <div className="ml-5 w-0 flex-1">
+                <div className="ml-3 sm:ml-5 w-0 flex-1">
                   <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
+                    <dt className="text-xs sm:text-sm font-medium text-gray-500 truncate">
                       Waiting Payment
                     </dt>
-                    <dd className="text-lg font-medium text-gray-900">
+                    <dd className="text-base sm:text-lg font-medium text-gray-900">
                       {getWaitingPayment()}
                     </dd>
                   </dl>
@@ -1017,7 +1017,7 @@ export function AdminDashboard() {
                         {/* Collapsible Table Content */}
                         {!isCollapsed && (
                           <div className="overflow-x-auto border-l border-r border-b border-gray-200 rounded-b-lg">
-                            <table className="min-w-full divide-y divide-gray-200">
+                            <table className="min-w-full divide-y divide-gray-200" style={{ minWidth: '800px' }}>
                               <thead className={headerColor}>
                                 <tr>
                                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
@@ -1314,7 +1314,7 @@ export function AdminDashboard() {
        {/* Order Details Modal */}
        {detailsModalOpen && selectedOrder && (
          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-           <div className="relative top-5 mx-auto p-5 border w-11/12 max-w-6xl shadow-lg rounded-md bg-white mb-10">
+           <div className="relative top-2 sm:top-5 mx-auto p-3 sm:p-5 border w-11/12 max-w-6xl shadow-lg rounded-md bg-white mb-2 sm:mb-10">
              <div className="mt-3">
                {/* Modal Header */}
                <div className="flex items-center justify-between mb-6">
@@ -1352,7 +1352,7 @@ export function AdminDashboard() {
                </div>
 
                {/* Modal Body */}
-               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                  {/* Left Column - Order Information */}
                  <div className="space-y-6">
                    {/* Basic Information */}
