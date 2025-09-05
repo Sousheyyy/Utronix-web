@@ -3,7 +3,7 @@
 import React from 'react'
 import { Order, UserRole } from '@/types'
 import { format } from 'date-fns'
-import { Package, DollarSign, Clock, CheckCircle, Truck, Globe, Home, Edit, Trash2, Eye } from 'lucide-react'
+import { Package, DollarSign, Clock, CheckCircle, Truck, Globe, Home, Edit, Trash2, Eye, CreditCard } from 'lucide-react'
 import { OrderProgressBar } from './OrderProgressBar'
 import { OrderFiles } from './OrderFiles'
 import { formatOrderTitle } from '@/lib/orderUtils'
@@ -15,6 +15,7 @@ interface OrderListProps {
   onOrderSelect?: (order: Order) => void
   onEditOrder?: (order: Order) => void
   onCancelOrder?: (order: Order) => void
+  onMakePayment?: (order: Order) => void
 }
 
 interface OrderCardProps {
@@ -23,6 +24,7 @@ interface OrderCardProps {
   onOrderSelect?: (order: Order) => void
   onEditOrder?: (order: Order) => void
   onCancelOrder?: (order: Order) => void
+  onMakePayment?: (order: Order) => void
 }
 
 const statusConfig = {
@@ -37,7 +39,7 @@ const statusConfig = {
   canceled: { label: 'Canceled', icon: Trash2, color: 'text-red-600 bg-red-100' },
 }
 
-function OrderCard({ order, userRole, onOrderSelect, onEditOrder, onCancelOrder }: OrderCardProps) {
+function OrderCard({ order, userRole, onOrderSelect, onEditOrder, onCancelOrder, onMakePayment }: OrderCardProps) {
   const status = statusConfig[order.status] || { label: order.status, icon: Package, color: 'text-gray-600 bg-gray-100' }
   const StatusIcon = status.icon
 
@@ -47,6 +49,10 @@ function OrderCard({ order, userRole, onOrderSelect, onEditOrder, onCancelOrder 
 
   const canCancelOrder = (order: Order) => {
     return order.status === 'request_created' || order.status === 'price_quoted'
+  }
+
+  const canMakePayment = (order: Order) => {
+    return order.status === 'price_quoted' && order.final_price
   }
 
   const formatPrice = (price?: number) => {
@@ -128,6 +134,16 @@ function OrderCard({ order, userRole, onOrderSelect, onEditOrder, onCancelOrder 
                 Edit
               </button>
             )}
+
+            {onMakePayment && canMakePayment(order) && (
+              <button
+                onClick={() => onMakePayment(order)}
+                className="inline-flex items-center px-3 py-1.5 border border-green-300 shadow-sm text-xs font-medium rounded text-green-700 bg-green-50 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+              >
+                <CreditCard className="h-3 w-3 mr-1" />
+                Make Payment
+              </button>
+            )}
           </div>
 
           <div className="flex items-center space-x-2">
@@ -147,7 +163,7 @@ function OrderCard({ order, userRole, onOrderSelect, onEditOrder, onCancelOrder 
   )
 }
 
-export const OrderList = React.memo(function OrderList({ orders, userRole, onOrderUpdate, onOrderSelect, onEditOrder, onCancelOrder }: OrderListProps) {
+export const OrderList = React.memo(function OrderList({ orders, userRole, onOrderUpdate, onOrderSelect, onEditOrder, onCancelOrder, onMakePayment }: OrderListProps) {
   if (orders.length === 0) {
     return (
       <div className="text-center py-12">
@@ -173,6 +189,7 @@ export const OrderList = React.memo(function OrderList({ orders, userRole, onOrd
           onOrderSelect={onOrderSelect}
           onEditOrder={onEditOrder}
           onCancelOrder={onCancelOrder}
+          onMakePayment={onMakePayment}
         />
       ))}
     </div>

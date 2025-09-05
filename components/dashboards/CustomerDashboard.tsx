@@ -10,7 +10,8 @@ import { OrderStepsInfo } from '../orders/OrderStepsInfo'
 import { FileUpload } from '../orders/FileUpload'
 import { FileUploadService } from '@/lib/fileUploadService'
 import { SavedAddresses } from '../addresses/SavedAddresses'
-import { LogOut, Plus, Package, Settings, ShoppingCart, Clock, Edit, X, Trash2, MapPin } from 'lucide-react'
+import { PaymentModal } from '../payments/PaymentModal'
+import { LogOut, Plus, Package, Settings, ShoppingCart, Clock, Edit, X, Trash2, MapPin, CreditCard } from 'lucide-react'
 import { AppHeader } from '../layout/AppHeader'
 import { toast } from 'react-hot-toast'
 
@@ -34,6 +35,8 @@ export function CustomerDashboard() {
   const [orderToCancel, setOrderToCancel] = useState<Order | null>(null)
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all')
   const [activeTab, setActiveTab] = useState<'orders' | 'addresses'>('orders')
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false)
+  const [selectedOrderForPayment, setSelectedOrderForPayment] = useState<Order | null>(null)
 
   // Filter orders based on selected status
   const filteredOrders = statusFilter === 'all' 
@@ -193,6 +196,19 @@ export function CustomerDashboard() {
 
   const canCancelOrder = (order: Order) => {
     return order.status === 'request_created' || order.status === 'price_quoted'
+  }
+
+  const canMakePayment = (order: Order) => {
+    return order.status === 'price_quoted' && order.final_price
+  }
+
+  const handleMakePayment = (order: Order) => {
+    if (!canMakePayment(order)) {
+      toast.error('This order cannot be paid at this stage')
+      return
+    }
+    setSelectedOrderForPayment(order)
+    setPaymentModalOpen(true)
   }
 
   const handleEditOrder = (order: Order) => {
@@ -586,6 +602,7 @@ export function CustomerDashboard() {
                  onOrderUpdate={fetchOrders}
                  onEditOrder={handleEditOrder}
                  onCancelOrder={handleCancelOrder}
+                 onMakePayment={handleMakePayment}
                />
              </div>
               </>
@@ -831,6 +848,17 @@ export function CustomerDashboard() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Payment Modal */}
+      {paymentModalOpen && selectedOrderForPayment && (
+        <PaymentModal
+          order={selectedOrderForPayment}
+          onClose={() => {
+            setPaymentModalOpen(false)
+            setSelectedOrderForPayment(null)
+          }}
+        />
       )}
     </div>
   )
